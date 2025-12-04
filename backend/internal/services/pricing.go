@@ -8,6 +8,14 @@ import (
 	"github.com/wonbyte/fantastic-octo-memory/backend/internal/models"
 )
 
+// Constants for pricing calculations
+const (
+	// LaborHoursEstimationFactor is the multiplier used to estimate labor hours from project cost.
+	// This is a rough estimation where labor hours = (total_cost * factor) / hourly_rate
+	// The 0.5 factor assumes labor is approximately 50% of total project cost
+	LaborHoursEstimationFactor = 0.5
+)
+
 // PricingService calculates costs and generates pricing summaries
 type PricingService struct {
 	defaultConfig *models.PricingConfig
@@ -171,7 +179,7 @@ func (s *PricingService) GeneratePricingSummary(
 			if !ok {
 				rate = config.LaborRates["general"]
 			}
-			hours := math.Round((cost * 0.5) / rate) // Estimate hours based on cost
+			hours := math.Round((cost * LaborHoursEstimationFactor) / rate) // Estimate hours based on cost
 			if hours > 0 {
 				laborItem := models.LineItem{
 					Description: fmt.Sprintf("Labor - %s", trade),
