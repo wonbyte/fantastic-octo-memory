@@ -1,6 +1,6 @@
 FROM node:22-alpine
 
-# Update npm to latest version
+# Update npm to version 11.6.4
 RUN npm install -g npm@11.6.4
 
 WORKDIR /app
