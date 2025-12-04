@@ -91,7 +91,7 @@ services:
       S3_PRESIGN_EXPIRY: 5m
       JOB_POLL_INTERVAL: 5s
       WORKER_MAX_RETRIES: 3
-      JWT_SECRET: ${JWT_SECRET:-change-this-secret-in-production}
+      JWT_SECRET: ${JWT_SECRET}
       JWT_TOKEN_EXPIRY: 24h
       SENTRY_DSN: ${SENTRY_DSN:-}
     depends_on:

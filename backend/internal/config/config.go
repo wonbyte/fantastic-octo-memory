@@ -75,7 +75,7 @@ func Load() (*Config, error) {
 	viper.SetDefault("WORKER_MAX_RETRIES", 3)
 	viper.SetDefault("DB_MAX_CONNECTIONS", 25)
 	viper.SetDefault("DB_MAX_IDLE_CONNECTIONS", 5)
-	viper.SetDefault("JWT_SECRET", "change-this-secret-in-production")
+	viper.SetDefault("JWT_SECRET", "")
 	viper.SetDefault("JWT_TOKEN_EXPIRY", "24h")
 
 	// Auto bind environment variables
@@ -142,6 +142,10 @@ func Load() (*Config, error) {
 	// Validate required fields
 	if config.Database.URL == "" {
 		return nil, fmt.Errorf("DATABASE_URL is required")
+	}
+
+	if config.Auth.JWTSecret == "" {
+		return nil, fmt.Errorf("JWT_SECRET is required - please set a secure secret in environment variables")
 	}
 
 	return config, nil
