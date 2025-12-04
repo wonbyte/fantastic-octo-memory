@@ -13,3 +13,4 @@ structlog>=24.4.0
 redis>=5.2.0
 python-dotenv>=1.0.1
 tenacity>=9.0.0
+sentry-sdk[fastapi]>=2.18.0

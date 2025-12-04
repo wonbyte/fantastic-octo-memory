@@ -91,6 +91,9 @@ services:
       S3_PRESIGN_EXPIRY: 5m
       JOB_POLL_INTERVAL: 5s
       WORKER_MAX_RETRIES: 3
+      JWT_SECRET: ${JWT_SECRET:-change-this-secret-in-production}
+      JWT_TOKEN_EXPIRY: 24h
+      SENTRY_DSN: ${SENTRY_DSN:-}
     depends_on:
       postgres:
         condition: service_healthy
@@ -98,6 +101,12 @@ services:
         condition: service_healthy
       minio:
         condition: service_started
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:8080/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
     networks:
       - construction-network
     restart: unless-stopped
@@ -112,6 +121,8 @@ services:
       - "8000:8000"
     environment:
       PORT: 8000
+      ENV: development
+      LOG_LEVEL: INFO
       DB_HOST: postgres
       DB_PORT: 5432
       DB_NAME: ${POSTGRES_DB:-construction_platform}
@@ -119,12 +130,25 @@ services:
       DB_PASSWORD: ${POSTGRES_PASSWORD:-change_me_in_production}
       REDIS_HOST: redis
       REDIS_PORT: 6379
+      REDIS_URL: redis://redis:6379/0
       BACKEND_URL: http://backend:8080
+      S3_ENDPOINT: http://minio:9000
+      S3_ACCESS_KEY: minioadmin
+      S3_SECRET_KEY: minioadmin
+      S3_BUCKET: blueprints
+      S3_REGION: us-east-1
+      SENTRY_DSN: ${SENTRY_DSN:-}
     depends_on:
       postgres:
         condition: service_healthy
       redis:
         condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
     networks:
       - construction-network
     restart: unless-stopped

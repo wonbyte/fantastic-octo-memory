@@ -31,7 +31,9 @@ require (
 	github.com/aws/aws-sdk-go-v2/service/sts v1.41.3 // indirect
 	github.com/aws/smithy-go v1.24.0 // indirect
 	github.com/fsnotify/fsnotify v1.9.0 // indirect
+	github.com/getsentry/sentry-go v0.40.0 // indirect
 	github.com/go-viper/mapstructure/v2 v2.4.0 // indirect
+	github.com/golang-jwt/jwt/v5 v5.3.0 // indirect
 	github.com/jackc/pgpassfile v1.0.0 // indirect
 	github.com/jackc/pgservicefile v0.0.0-20240606120523-5a60cdf6a761 // indirect
 	github.com/jackc/puddle/v2 v2.2.2 // indirect
