@@ -1,0 +1,127 @@
+version: '3.9'
+
+services:
+  # PostgreSQL Database
+  postgres:
+    image: postgres:16-alpine
+    container_name: construction-postgres
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-construction_platform}
+      POSTGRES_USER: ${POSTGRES_USER:-platform_user}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-change_me_in_production}
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-platform_user}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - construction-network
+
+  # Redis Cache
+  redis:
+    image: redis:7.4-alpine
+    container_name: construction-redis
+    command: redis-server --appendonly yes
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+    networks:
+      - construction-network
+
+  # Go Backend Service
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: construction-backend
+    ports:
+      - "8080:8080"
+    environment:
+      PORT: 8080
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_NAME: ${POSTGRES_DB:-construction_platform}
+      DB_USER: ${POSTGRES_USER:-platform_user}
+      DB_PASSWORD: ${POSTGRES_PASSWORD:-change_me_in_production}
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      AI_SERVICE_URL: http://ai_service:8000
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - construction-network
+    restart: unless-stopped
+
+  # Python AI Service
+  ai_service:
+    build:
+      context: ./ai_service
+      dockerfile: Dockerfile
+    container_name: construction-ai-service
+    ports:
+      - "8000:8000"
+    environment:
+      PORT: 8000
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_NAME: ${POSTGRES_DB:-construction_platform}
+      DB_USER: ${POSTGRES_USER:-platform_user}
+      DB_PASSWORD: ${POSTGRES_PASSWORD:-change_me_in_production}
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      BACKEND_URL: http://backend:8080
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - construction-network
+    restart: unless-stopped
+
+  # React Native/Expo Frontend
+  frontend:
+    build:
+      context: ./app
+      dockerfile: Dockerfile
+    container_name: construction-frontend
+    ports:
+      - "3000:3000"
+      - "19000:19000"
+      - "19001:19001"
+      - "19002:19002"
+    environment:
+      EXPO_PUBLIC_API_URL: http://localhost:8080
+      EXPO_PUBLIC_AI_SERVICE_URL: http://localhost:8000
+      EXPO_DEVTOOLS_LISTEN_ADDRESS: 0.0.0.0
+    volumes:
+      - ./app:/app
+      - /app/node_modules
+    depends_on:
+      - backend
+      - ai_service
+    networks:
+      - construction-network
+    stdin_open: true
+    tty: true
+
+networks:
+  construction-network:
+    driver: bridge
+
+volumes:
+  postgres_data:
+  redis_data:

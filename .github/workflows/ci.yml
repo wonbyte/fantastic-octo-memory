@@ -1,0 +1,160 @@
+name: CI
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+
+jobs:
+  lint-and-test-backend:
+    name: Backend (Go)
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Set up Go
+      uses: actions/setup-go@v5
+      with:
+        go-version: '1.22'
+    
+    - name: Cache Go modules
+      uses: actions/cache@v4
+      with:
+        path: ~/go/pkg/mod
+        key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
+        restore-keys: |
+          ${{ runner.os }}-go-
+    
+    - name: Install dependencies
+      working-directory: ./backend
+      run: go mod download
+    
+    - name: Run go vet
+      working-directory: ./backend
+      run: go vet ./...
+    
+    - name: Run tests
+      working-directory: ./backend
+      run: go test -v -race -coverprofile=coverage.out ./...
+    
+    - name: Upload coverage
+      uses: codecov/codecov-action@v4
+      with:
+        files: ./backend/coverage.out
+        flags: backend
+
+  lint-and-test-ai-service:
+    name: AI Service (Python)
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.12'
+    
+    - name: Cache pip packages
+      uses: actions/cache@v4
+      with:
+        path: ~/.cache/pip
+        key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements*.txt') }}
+        restore-keys: |
+          ${{ runner.os }}-pip-
+    
+    - name: Install dependencies
+      working-directory: ./ai_service
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt -r requirements-dev.txt
+        pip install ruff
+    
+    - name: Lint with ruff
+      working-directory: ./ai_service
+      run: ruff check .
+    
+    - name: Run tests with pytest
+      working-directory: ./ai_service
+      run: pytest --cov=. --cov-report=xml
+    
+    - name: Upload coverage
+      uses: codecov/codecov-action@v4
+      with:
+        files: ./ai_service/coverage.xml
+        flags: ai-service
+
+  lint-and-test-app:
+    name: App (React Native)
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Set up Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '22'
+        cache: 'npm'
+        cache-dependency-path: ./app/package-lock.json
+    
+    - name: Install dependencies
+      working-directory: ./app
+      run: npm ci
+    
+    - name: Run ESLint
+      working-directory: ./app
+      run: npm run lint
+    
+    - name: Run TypeScript check
+      working-directory: ./app
+      run: npm run type-check
+    
+    - name: Run tests
+      working-directory: ./app
+      run: npm test -- --coverage
+    
+    - name: Upload coverage
+      uses: codecov/codecov-action@v4
+      with:
+        files: ./app/coverage/coverage-final.json
+        flags: app
+
+  docker-build:
+    name: Docker Build Test
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v3
+    
+    - name: Build backend image
+      uses: docker/build-push-action@v5
+      with:
+        context: ./backend
+        push: false
+        tags: construction-backend:test
+        cache-from: type=gha
+        cache-to: type=gha,mode=max
+    
+    - name: Build ai_service image
+      uses: docker/build-push-action@v5
+      with:
+        context: ./ai_service
+        push: false
+        tags: construction-ai-service:test
+        cache-from: type=gha
+        cache-to: type=gha,mode=max
+    
+    - name: Build app image
+      uses: docker/build-push-action@v5
+      with:
+        context: ./app
+        push: false
+        tags: construction-app:test
+        cache-from: type=gha
+        cache-to: type=gha,mode=max
