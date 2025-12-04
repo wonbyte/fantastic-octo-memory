@@ -18,15 +18,16 @@ import { COLORS, STATUS_COLORS } from '../../../src/utils/constants';
 import { Blueprint } from '../../../src/types';
 
 export default function ProjectDetailScreen() {
-  const { id } = useLocalSearchParams<{ id: string }>();
-  const { data: project, isLoading: projectLoading, error: projectError, refetch: refetchProject } = useProject(id);
-  const { data: blueprints, isLoading: blueprintsLoading, error: blueprintsError, refetch: refetchBlueprints } = useBlueprints(id);
+  const { id: projectId } = useLocalSearchParams<{ id: string }>();
+  const { data: project, isLoading: projectLoading, error: projectError, refetch: refetchProject } = useProject(projectId);
+  const { data: blueprints, isLoading: blueprintsLoading, error: blueprintsError, refetch: refetchBlueprints } = useBlueprints(projectId);
 
   const renderBlueprint = (blueprint: Blueprint) => (
     <TouchableOpacity
       key={blueprint.id}
       style={styles.blueprintItem}
       activeOpacity={0.7}
+      onPress={() => router.push(`/(main)/projects/${projectId}/blueprints/${blueprint.id}`)}
     >
       <View style={styles.blueprintInfo}>
         <Text style={styles.blueprintName}>{blueprint.filename}</Text>
@@ -91,10 +92,7 @@ export default function ProjectDetailScreen() {
           <Text style={styles.sectionTitle}>Blueprints</Text>
           <Button
             title="Upload"
-            onPress={() => {
-              // Navigate to upload screen (to be implemented)
-              console.log('Upload blueprint');
-            }}
+            onPress={() => router.push(`/(main)/projects/${projectId}/blueprints/upload`)}
             style={styles.uploadButton}
           />
         </View>

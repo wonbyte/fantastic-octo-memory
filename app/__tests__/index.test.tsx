@@ -5,12 +5,15 @@ import { AuthProvider } from '../src/contexts/AuthContext';
 import Index from '../app/index';
 
 // Mock expo-router
-jest.mock('expo-router', () => ({
-  Redirect: ({ href }: { href: string }) => {
-    const { Text } = require('react-native');
-    return <Text testID="redirect">{href}</Text>;
-  },
-}));
+jest.mock('expo-router', () => {
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
+  const { Text } = require('react-native');
+  return {
+    Redirect: ({ href }: { href: string }) => {
+      return <Text testID="redirect">{href}</Text>;
+    },
+  };
+});
 
 // Mock expo-secure-store
 jest.mock('expo-secure-store', () => ({
