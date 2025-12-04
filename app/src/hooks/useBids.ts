@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { bidsApi } from '../api/bids';
 import { Bid, GenerateBidRequest } from '../types';
 
@@ -7,7 +7,7 @@ export const useBids = (projectId: string) => {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
 
-  const fetchBids = async () => {
+  const fetchBids = useCallback(async () => {
     try {
       setIsLoading(true);
       setError(null);
@@ -18,13 +18,13 @@ export const useBids = (projectId: string) => {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [projectId]);
 
   useEffect(() => {
     if (projectId) {
       fetchBids();
     }
-  }, [projectId]);
+  }, [projectId, fetchBids]);
 
   return {
     data,
@@ -39,7 +39,7 @@ export const useBid = (bidId: string) => {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
 
-  const fetchBid = async () => {
+  const fetchBid = useCallback(async () => {
     try {
       setIsLoading(true);
       setError(null);
@@ -50,13 +50,13 @@ export const useBid = (bidId: string) => {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [bidId]);
 
   useEffect(() => {
     if (bidId) {
       fetchBid();
     }
-  }, [bidId]);
+  }, [bidId, fetchBid]);
 
   return {
     data,
