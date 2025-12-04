@@ -64,6 +64,14 @@ func (h *Handler) AnalyzeBlueprint(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// Update blueprint analysis status to queued
+	blueprint.AnalysisStatus = models.AnalysisStatusQueued
+	blueprint.UpdatedAt = time.Now()
+	if err := h.blueprintRepo.Update(r.Context(), blueprint); err != nil {
+		respondError(w, http.StatusInternalServerError, "Failed to update blueprint status")
+		return
+	}
+
 	respondJSON(w, http.StatusOK, AnalyzeResponse{
 		JobID:  jobID,
 		Status: string(models.JobStatusQueued),
