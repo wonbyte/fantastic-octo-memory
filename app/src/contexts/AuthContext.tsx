@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { authApi } from '../api/auth';
 import { getAuthToken, clearAuthToken } from '../api/client';
+import apiClient from '../api/client';
 import { User, LoginRequest } from '../types';
 
 interface AuthContextType {
@@ -9,7 +10,7 @@ interface AuthContextType {
   isAuthenticated: boolean;
   login: (credentials: LoginRequest) => Promise<void>;
   logout: () => Promise<void>;
-  register: (data: LoginRequest & { name?: string }) => Promise<void>;
+  register: (data: LoginRequest & { name?: string; company_name?: string }) => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -38,18 +39,15 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     try {
       const token = await getAuthToken();
       if (token) {
-        // TODO: Replace with actual API call to validate token and get user info
-        // Example: const user = await authApi.getCurrentUser();
-        // For now, using a placeholder user to demonstrate auth flow
-        setUser({
-          id: '1',
-          email: 'user@example.com',
-          created_at: new Date().toISOString(),
-          updated_at: new Date().toISOString(),
-        });
+        // Get current user from backend
+        const response = await apiClient.get<User>('/auth/me');
+        setUser(response.data);
       }
     } catch (error) {
       console.error('Error checking auth:', error);
+      // Clear invalid token
+      await clearAuthToken();
+      setUser(null);
     } finally {
       setIsLoading(false);
     }
@@ -76,7 +74,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     }
   };
 
-  const register = async (data: LoginRequest & { name?: string }) => {
+  const register = async (data: LoginRequest & { name?: string; company_name?: string }) => {
     try {
       const response = await authApi.register(data);
       setUser(response.user);
