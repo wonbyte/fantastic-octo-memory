@@ -2,6 +2,7 @@ package services
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"log/slog"
 	"time"
@@ -119,6 +120,19 @@ func (w *Worker) processJob(ctx context.Context, job *models.Job) error {
 		}
 
 		return w.failJob(ctx, job, fmt.Sprintf("AI service error: %v", err))
+	}
+
+	// Normalize AI response and store in blueprint
+	var analysisResult models.AnalysisResult
+	if err := json.Unmarshal([]byte(resultData), &analysisResult); err != nil {
+		return w.failJob(ctx, job, fmt.Sprintf("failed to parse AI response: %v", err))
+	}
+
+	// Store normalized analysis in blueprint
+	blueprint.AnalysisData = &resultData
+	blueprint.UpdatedAt = time.Now()
+	if err := w.blueprintRepo.Update(ctx, blueprint); err != nil {
+		return w.failJob(ctx, job, fmt.Sprintf("failed to update blueprint with analysis: %v", err))
 	}
 
 	// Update job to completed

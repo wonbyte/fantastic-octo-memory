@@ -18,7 +18,7 @@ func NewBlueprintRepository(db *Database) *BlueprintRepository {
 
 func (r *BlueprintRepository) GetByID(ctx context.Context, id uuid.UUID) (*models.Blueprint, error) {
 	query := `
-		SELECT id, project_id, filename, s3_key, file_size, mime_type, upload_status, created_at, updated_at
+		SELECT id, project_id, filename, s3_key, file_size, mime_type, upload_status, analysis_data, created_at, updated_at
 		FROM blueprints
 		WHERE id = $1
 	`
@@ -32,6 +32,7 @@ func (r *BlueprintRepository) GetByID(ctx context.Context, id uuid.UUID) (*model
 		&blueprint.FileSize,
 		&blueprint.MimeType,
 		&blueprint.UploadStatus,
+		&blueprint.AnalysisData,
 		&blueprint.CreatedAt,
 		&blueprint.UpdatedAt,
 	)
@@ -45,8 +46,8 @@ func (r *BlueprintRepository) GetByID(ctx context.Context, id uuid.UUID) (*model
 
 func (r *BlueprintRepository) Create(ctx context.Context, blueprint *models.Blueprint) error {
 	query := `
-		INSERT INTO blueprints (id, project_id, filename, s3_key, file_size, mime_type, upload_status, created_at, updated_at)
-		VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+		INSERT INTO blueprints (id, project_id, filename, s3_key, file_size, mime_type, upload_status, analysis_data, created_at, updated_at)
+		VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
 	`
 
 	_, err := r.db.Pool.Exec(ctx, query,
@@ -57,6 +58,7 @@ func (r *BlueprintRepository) Create(ctx context.Context, blueprint *models.Blue
 		blueprint.FileSize,
 		blueprint.MimeType,
 		blueprint.UploadStatus,
+		blueprint.AnalysisData,
 		blueprint.CreatedAt,
 		blueprint.UpdatedAt,
 	)
@@ -71,13 +73,14 @@ func (r *BlueprintRepository) Create(ctx context.Context, blueprint *models.Blue
 func (r *BlueprintRepository) Update(ctx context.Context, blueprint *models.Blueprint) error {
 	query := `
 		UPDATE blueprints
-		SET file_size = $1, upload_status = $2, updated_at = $3
-		WHERE id = $4
+		SET file_size = $1, upload_status = $2, analysis_data = $3, updated_at = $4
+		WHERE id = $5
 	`
 
 	_, err := r.db.Pool.Exec(ctx, query,
 		blueprint.FileSize,
 		blueprint.UploadStatus,
+		blueprint.AnalysisData,
 		blueprint.UpdatedAt,
 		blueprint.ID,
 	)

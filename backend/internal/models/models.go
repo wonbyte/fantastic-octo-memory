@@ -51,6 +51,7 @@ type Blueprint struct {
 	FileSize     *int64       `json:"file_size"`
 	MimeType     *string      `json:"mime_type"`
 	UploadStatus UploadStatus `json:"upload_status"`
+	AnalysisData *string      `json:"analysis_data"` // JSONB stored as string
 	CreatedAt    time.Time    `json:"created_at"`
 	UpdatedAt    time.Time    `json:"updated_at"`
 }
@@ -109,4 +110,85 @@ type Bid struct {
 	BidData          *string    `json:"bid_data"` // JSONB stored as string
 	CreatedAt        time.Time  `json:"created_at"`
 	UpdatedAt        time.Time  `json:"updated_at"`
+}
+
+// Analysis models - match Python AI service response and TypeScript frontend
+
+type Room struct {
+	Name       string  `json:"name"`
+	Dimensions string  `json:"dimensions"`
+	Area       float64 `json:"area"`
+	RoomType   *string `json:"room_type,omitempty"`
+}
+
+type Opening struct {
+	OpeningType string  `json:"opening_type"`
+	Count       int     `json:"count"`
+	Size        string  `json:"size"`
+	Details     *string `json:"details,omitempty"`
+}
+
+type Fixture struct {
+	FixtureType string  `json:"fixture_type"`
+	Category    string  `json:"category"`
+	Count       int     `json:"count"`
+	Details     *string `json:"details,omitempty"`
+}
+
+type Measurement struct {
+	MeasurementType string  `json:"measurement_type"`
+	Value           float64 `json:"value"`
+	Unit            string  `json:"unit"`
+	Location        *string `json:"location,omitempty"`
+}
+
+type Material struct {
+	MaterialName   string  `json:"material_name"`
+	Quantity       float64 `json:"quantity"`
+	Unit           string  `json:"unit"`
+	Specifications *string `json:"specifications,omitempty"`
+}
+
+type AnalysisResult struct {
+	BlueprintID      string        `json:"blueprint_id"`
+	Status           string        `json:"status"`
+	Rooms            []Room        `json:"rooms"`
+	Openings         []Opening     `json:"openings"`
+	Fixtures         []Fixture     `json:"fixtures"`
+	Measurements     []Measurement `json:"measurements"`
+	Materials        []Material    `json:"materials"`
+	RawOCRText       *string       `json:"raw_ocr_text,omitempty"`
+	ConfidenceScore  float64       `json:"confidence_score"`
+	ProcessingTimeMs int           `json:"processing_time_ms"`
+}
+
+// TakeoffSummary represents aggregated takeoff calculations
+type TakeoffSummary struct {
+	TotalArea       float64            `json:"total_area"`        // Sum of all room areas (SF)
+	TotalPerimeter  float64            `json:"total_perimeter"`   // Sum of all room perimeters (LF)
+	OpeningCounts   map[string]int     `json:"opening_counts"`    // Count by opening type (door, window)
+	FixtureCounts   map[string]int     `json:"fixture_counts"`    // Count by fixture category
+	RoomCount       int                `json:"room_count"`        // Total number of rooms
+	RoomBreakdown   []RoomSummary      `json:"room_breakdown"`    // Per-room details
+	OpeningBreakdown []OpeningSummary  `json:"opening_breakdown"` // Per-opening details
+	FixtureBreakdown []FixtureSummary  `json:"fixture_breakdown"` // Per-fixture details
+}
+
+type RoomSummary struct {
+	Name       string  `json:"name"`
+	RoomType   *string `json:"room_type,omitempty"`
+	Area       float64 `json:"area"`
+	Dimensions string  `json:"dimensions"`
+}
+
+type OpeningSummary struct {
+	OpeningType string `json:"opening_type"`
+	Count       int    `json:"count"`
+	Size        string `json:"size"`
+}
+
+type FixtureSummary struct {
+	FixtureType string `json:"fixture_type"`
+	Category    string `json:"category"`
+	Count       int    `json:"count"`
 }

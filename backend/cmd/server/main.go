@@ -92,6 +92,10 @@ func main() {
 	r.Post("/projects/{id}/blueprints/upload-url", handler.CreateUploadURL)
 	r.Post("/blueprints/{id}/complete-upload", handler.CompleteUpload)
 
+	// Blueprint analysis routes
+	r.Get("/blueprints/{id}/analysis", handler.GetBlueprintAnalysis)
+	r.Get("/blueprints/{id}/takeoff-summary", handler.GetBlueprintTakeoffSummary)
+
 	// Job routes
 	r.Post("/blueprints/{id}/analyze", handler.AnalyzeBlueprint)
 	r.Get("/jobs/{id}", handler.GetJobStatus)
