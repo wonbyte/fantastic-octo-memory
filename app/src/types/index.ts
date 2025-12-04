@@ -181,3 +181,77 @@ export interface TriggerAnalysisResponse {
   job_id: string;
   status: JobStatus;
 }
+
+// Bid Types
+export type BidStatus = 'draft' | 'sent' | 'accepted' | 'rejected';
+
+export interface Bid {
+  id: string;
+  project_id: string;
+  job_id?: string;
+  name?: string;
+  total_cost?: number;
+  labor_cost?: number;
+  material_cost?: number;
+  markup_percentage?: number;
+  final_price?: number;
+  status: BidStatus;
+  bid_data?: string; // JSONB stored as string
+  pdf_url?: string;
+  pdf_s3_key?: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface LineItem {
+  description: string;
+  trade: string;
+  quantity: number;
+  unit: string;
+  unit_cost: number;
+  total: number;
+}
+
+export interface BidData {
+  bid_id: string;
+  project_id: string;
+  status: string;
+  scope_of_work: string;
+  line_items: LineItem[];
+  labor_cost: number;
+  material_cost: number;
+  subtotal: number;
+  markup_amount: number;
+  total_price: number;
+  exclusions: string[];
+  inclusions: string[];
+  schedule: Record<string, string>;
+  payment_terms: string;
+  warranty_terms: string;
+  closing_statement: string;
+}
+
+export interface GenerateBidRequest {
+  blueprint_id: string;
+  markup_percentage?: number;
+  company_name?: string;
+  bid_name?: string;
+}
+
+export interface PricingConfig {
+  material_prices: Record<string, number>;
+  labor_rates: Record<string, number>;
+  overhead_rate: number;
+  profit_margin: number;
+}
+
+export interface PricingSummary {
+  line_items: LineItem[];
+  labor_cost: number;
+  material_cost: number;
+  subtotal: number;
+  overhead_amount: number;
+  markup_amount: number;
+  total_price: number;
+  costs_by_trade: Record<string, number>;
+}
