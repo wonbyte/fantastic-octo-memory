@@ -72,6 +72,14 @@ func (s *TakeoffService) CalculateTakeoffSummary(analysis *models.AnalysisResult
 	return summary, nil
 }
 
+// Perimeter estimation constants
+const (
+	// For rooms where dimensions aren't parseable, we estimate perimeter
+	// based on area using an approximation factor. This assumes typical
+	// rectangular rooms with moderate aspect ratios.
+	perimeterEstimationFactor = 0.4 // 4.0 / 10.0 simplified
+)
+
 // estimatePerimeter calculates perimeter from area and dimensions string
 // This is a simplified implementation - in production, parse actual dimensions
 func estimatePerimeter(area float64, dimensions string) float64 {
@@ -86,7 +94,8 @@ func estimatePerimeter(area float64, dimensions string) float64 {
 	// For rectangular room, approximate as 2*(W+L) where W*L = area
 	// Use golden ratio approximation: W = sqrt(area/1.618), L = sqrt(area*1.618)
 	// This gives reasonable perimeter estimates
-	return 4.0 * (area / 10.0) // Simplified: assume average room is ~10ft on a side per 100 sq ft
+	// Simplified calculation: area / 10 gives reasonable LF for typical room sizes
+	return 4.0 * (area * perimeterEstimationFactor)
 }
 
 // ParseAnalysisData parses JSONB string into AnalysisResult

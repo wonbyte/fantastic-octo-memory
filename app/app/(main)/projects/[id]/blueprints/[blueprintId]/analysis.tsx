@@ -15,7 +15,11 @@ import { ErrorState } from '../../../../../../src/components/ui/ErrorState';
 import { COLORS, STATUS_COLORS } from '../../../../../../src/utils/constants';
 
 export default function AnalysisStatusScreen() {
-  const { jobId } = useLocalSearchParams<{ jobId: string }>();
+  const { jobId, id: projectId, blueprintId } = useLocalSearchParams<{ 
+    jobId: string; 
+    id: string; 
+    blueprintId: string;
+  }>();
   const { data: job, isLoading, error, refetch } = useJob(jobId, !!jobId);
 
   const getStatusIcon = () => {
@@ -293,8 +297,8 @@ export default function AnalysisStatusScreen() {
               <Button
                 title="Generate Bid"
                 onPress={() => {
-                  // Navigate to bid generation
-                  router.push(`/projects/${job.blueprint_id}/generate-bid`);
+                  // Navigate to bid generation using params
+                  router.push(`/projects/${projectId}/generate-bid?blueprintId=${blueprintId}`);
                 }}
                 style={styles.bidButton}
               />

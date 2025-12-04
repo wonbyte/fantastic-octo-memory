@@ -128,7 +128,7 @@ func (w *Worker) processJob(ctx context.Context, job *models.Job) error {
 		return w.failJob(ctx, job, fmt.Sprintf("failed to parse AI response: %v", err))
 	}
 
-	// Store normalized analysis in blueprint
+	// Store normalized analysis in blueprint (resultData is already a JSON string)
 	blueprint.AnalysisData = &resultData
 	blueprint.UpdatedAt = time.Now()
 	if err := w.blueprintRepo.Update(ctx, blueprint); err != nil {
