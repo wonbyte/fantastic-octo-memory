@@ -54,7 +54,7 @@ This platform streamlines the construction bidding process by:
 - **Docker** (with Docker Compose V2)
 - **Make** (for convenience commands)
 - **Node.js** 22 LTS (for local app development)
-- **Go** 1.22+ (for local backend development)
+- **Go** 1.25+ (for local backend development)
 - **Python** 3.12+ (for local AI service development)
 
 ### Running the Platform
@@ -105,7 +105,7 @@ make test     # Run tests for all services
 
 | Component | Technology | Version |
 |-----------|-----------|---------|
-| **Backend** | Go | 1.22+ |
+| **Backend** | Go | 1.25+ |
 | **AI Service** | Python | 3.12+ |
 | **AI Framework** | FastAPI | 0.115+ |
 | **Frontend** | React | 18.3+ |
