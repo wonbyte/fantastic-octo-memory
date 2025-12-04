@@ -2,9 +2,6 @@ FROM node:22-alpine
 
 WORKDIR /app
 
-# Install Expo CLI globally
-RUN npm install -g expo-cli@latest
-
 # Copy package files
 COPY package*.json ./
 
