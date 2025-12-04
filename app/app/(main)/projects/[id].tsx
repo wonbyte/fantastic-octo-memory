@@ -26,7 +26,6 @@ export default function ProjectDetailScreen() {
   const { data: blueprints, isLoading: blueprintsLoading, error: blueprintsError, refetch: refetchBlueprints } = useBlueprints(projectId);
   const { data: bids, isLoading: bidsLoading, error: bidsError, refetch: refetchBids } = useBids(projectId);
   const { generateBid, isLoading: isGeneratingBid } = useGenerateBid();
-  const [showGenerateBidModal, setShowGenerateBidModal] = useState(false);
 
   const renderBlueprint = (blueprint: Blueprint) => (
     <TouchableOpacity
@@ -92,7 +91,7 @@ export default function ProjectDetailScreen() {
     if (bid.pdf_url) {
       try {
         await Linking.openURL(bid.pdf_url);
-      } catch (err) {
+      } catch {
         Alert.alert('Error', 'Failed to open PDF');
       }
     }
