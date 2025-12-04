@@ -52,12 +52,14 @@ export default function AnalysisStatusScreen() {
     if (!job?.created_at) return null;
     
     const start = new Date(job.created_at).getTime();
-    // Use a ref or state for current time to avoid calling Date.now() during render
-    // For simplicity, we'll use completed_at if available, otherwise return a static message
-    const end = job.completed_at 
-      ? new Date(job.completed_at).getTime() 
-      : start; // Use start as fallback to avoid calling Date.now() during render
+    // For completed jobs, use completed_at time
+    // For in-progress jobs, we can't use Date.now() during render
+    // So we return null to avoid showing misleading time
+    if (!job.completed_at) {
+      return null;
+    }
     
+    const end = new Date(job.completed_at).getTime();
     const elapsed = Math.floor((end - start) / 1000);
     
     if (elapsed < 60) return `${elapsed}s`;
@@ -206,15 +208,6 @@ export default function AnalysisStatusScreen() {
                 </View>
               </View>
             )}
-
-            <Button
-              title="View Full Analysis"
-              onPress={() => {
-                // Navigate to full analysis view (to be implemented)
-                console.log('View full analysis');
-              }}
-              style={styles.viewButton}
-            />
           </Card>
         )}
 
@@ -227,17 +220,6 @@ export default function AnalysisStatusScreen() {
                 router.back();
               }}
               style={styles.retryButton}
-            />
-          )}
-
-          {job.status === 'completed' && (
-            <Button
-              title="Generate Bid"
-              onPress={() => {
-                // Navigate to bid generation (to be implemented)
-                console.log('Generate bid');
-              }}
-              style={styles.generateBidButton}
             />
           )}
 
@@ -388,18 +370,11 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: COLORS.text.secondary,
   },
-  viewButton: {
-    marginTop: 8,
-  },
   actionSection: {
     marginTop: 16,
   },
   retryButton: {
     marginBottom: 12,
-  },
-  generateBidButton: {
-    marginBottom: 12,
-    backgroundColor: COLORS.success,
   },
   backButton: {
     marginTop: 8,

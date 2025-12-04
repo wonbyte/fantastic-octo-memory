@@ -31,10 +31,16 @@ apiClient.interceptors.request.use(
   }
 );
 
+// Define error response type
+interface ApiErrorResponse {
+  message?: string;
+  error?: string;
+}
+
 // Response interceptor for error handling
 apiClient.interceptors.response.use(
   (response) => response,
-  async (error: AxiosError) => {
+  async (error: AxiosError<ApiErrorResponse>) => {
     if (error.response?.status === 401) {
       // Unauthorized - clear token and redirect to login
       try {
@@ -44,9 +50,10 @@ apiClient.interceptors.response.use(
       }
     }
 
-    // Return a structured error
+    // Return a structured error with safe type checking
+    const errorData = error.response?.data;
     const message = 
-      (error.response?.data as { message?: string })?.message ||
+      (errorData && (errorData.message || errorData.error)) ||
       error.message ||
       'An unexpected error occurred';
 

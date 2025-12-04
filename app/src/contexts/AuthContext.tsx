@@ -38,9 +38,9 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     try {
       const token = await getAuthToken();
       if (token) {
-        // In a real app, you would validate the token with the backend
-        // For now, we'll just set a dummy user if token exists
-        // This should be replaced with an actual API call to get user info
+        // TODO: Replace with actual API call to validate token and get user info
+        // Example: const user = await authApi.getCurrentUser();
+        // For now, using a placeholder user to demonstrate auth flow
         setUser({
           id: '1',
           email: 'user@example.com',

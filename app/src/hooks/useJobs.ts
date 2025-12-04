@@ -8,9 +8,9 @@ export const useJob = (jobId: string, enabled = true) => {
     queryFn: () => jobsApi.getById(jobId),
     enabled: enabled && !!jobId,
     refetchInterval: (query) => {
-      const status = query.state.data?.status;
-      // Stop polling when job is completed or failed
-      if (status === 'completed' || status === 'failed') {
+      const data = query.state.data;
+      // Stop polling if no data or job is completed/failed
+      if (!data || data.status === 'completed' || data.status === 'failed') {
         return false;
       }
       return JOB_POLL_INTERVAL;

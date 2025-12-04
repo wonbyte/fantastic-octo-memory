@@ -16,13 +16,13 @@ import { ErrorState } from '../../../../../src/components/ui/ErrorState';
 import { COLORS, STATUS_COLORS } from '../../../../../src/utils/constants';
 
 export default function BlueprintDetailScreen() {
-  const { blueprintId } = useLocalSearchParams<{ blueprintId: string }>();
+  const { blueprintId, id: projectId } = useLocalSearchParams<{ blueprintId: string; id: string }>();
   const { data: blueprint, isLoading, error, refetch } = useBlueprint(blueprintId);
   const { data: jobs } = useJobsByBlueprint(blueprintId);
   const triggerAnalysis = useTriggerAnalysis();
 
   const handleAnalyze = async () => {
-    if (!blueprintId) return;
+    if (!blueprintId || !projectId) return;
 
     try {
       const result = await triggerAnalysis.mutateAsync(blueprintId);
@@ -32,7 +32,7 @@ export default function BlueprintDetailScreen() {
         [
           {
             text: 'View Status',
-            onPress: () => router.push(`/(main)/projects/[id]/blueprints/${blueprintId}/analysis?jobId=${result.job_id}`),
+            onPress: () => router.push(`/(main)/projects/${projectId}/blueprints/${blueprintId}/analysis?jobId=${result.job_id}`),
           },
           {
             text: 'OK',
@@ -167,7 +167,7 @@ export default function BlueprintDetailScreen() {
             )}
             <Button
               title="View Analysis Status"
-              onPress={() => router.push(`/(main)/projects/[id]/blueprints/${blueprintId}/analysis?jobId=${latestJob.id}`)}
+              onPress={() => router.push(`/(main)/projects/${projectId}/blueprints/${blueprintId}/analysis?jobId=${latestJob.id}`)}
               variant="secondary"
               style={styles.viewJobButton}
             />

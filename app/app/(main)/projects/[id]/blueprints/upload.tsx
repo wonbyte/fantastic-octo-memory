@@ -5,7 +5,6 @@ import {
   StyleSheet,
   ScrollView,
   Alert,
-  Platform,
 } from 'react-native';
 import { useLocalSearchParams, router } from 'expo-router';
 import * as DocumentPicker from 'expo-document-picker';
@@ -118,17 +117,10 @@ export default function BlueprintUploadScreen() {
       // Step 2: Upload to S3
       setStep('uploading');
 
-      // For web, we can use fetch with the file
-      if (Platform.OS === 'web') {
-        const response = await fetch(selectedFile.uri);
-        const blob = await response.blob();
-        await blueprintsApi.uploadToS3(uploadUrlData.upload_url, blob);
-      } else {
-        // For native, we need to use fetch with the file URI
-        const response = await fetch(selectedFile.uri);
-        const blob = await response.blob();
-        await blueprintsApi.uploadToS3(uploadUrlData.upload_url, blob);
-      }
+      // Convert file URI to blob for upload
+      const response = await fetch(selectedFile.uri);
+      const blob = await response.blob();
+      await blueprintsApi.uploadToS3(uploadUrlData.upload_url, blob);
 
       setUploadProgress(80);
 
