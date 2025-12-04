@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import {
   View,
   Text,
@@ -6,21 +6,27 @@ import {
   ScrollView,
   TouchableOpacity,
   ActivityIndicator,
+  Alert,
+  Linking,
 } from 'react-native';
 import { useLocalSearchParams, router } from 'expo-router';
 import { useProject } from '../../../src/hooks/useProjects';
 import { useBlueprints } from '../../../src/hooks/useBlueprints';
+import { useBids, useGenerateBid } from '../../../src/hooks/useBids';
 import { Card } from '../../../src/components/ui/Card';
 import { Button } from '../../../src/components/ui/Button';
 import { Loading } from '../../../src/components/ui/Loading';
 import { ErrorState } from '../../../src/components/ui/ErrorState';
 import { COLORS, STATUS_COLORS } from '../../../src/utils/constants';
-import { Blueprint } from '../../../src/types';
+import { Blueprint, Bid } from '../../../src/types';
 
 export default function ProjectDetailScreen() {
   const { id: projectId } = useLocalSearchParams<{ id: string }>();
   const { data: project, isLoading: projectLoading, error: projectError, refetch: refetchProject } = useProject(projectId);
   const { data: blueprints, isLoading: blueprintsLoading, error: blueprintsError, refetch: refetchBlueprints } = useBlueprints(projectId);
+  const { data: bids, isLoading: bidsLoading, error: bidsError, refetch: refetchBids } = useBids(projectId);
+  const { generateBid, isLoading: isGeneratingBid } = useGenerateBid();
+  const [showGenerateBidModal, setShowGenerateBidModal] = useState(false);
 
   const renderBlueprint = (blueprint: Blueprint) => (
     <TouchableOpacity
@@ -41,6 +47,82 @@ export default function ProjectDetailScreen() {
         </View>
       </View>
     </TouchableOpacity>
+  );
+
+  const handleGenerateBid = async () => {
+    // Find first analyzed blueprint
+    const analyzedBlueprint = blueprints?.find(
+      (bp) => bp.analysis_status === 'completed'
+    );
+
+    if (!analyzedBlueprint) {
+      Alert.alert(
+        'No Analysis Available',
+        'Please analyze a blueprint before generating a bid.',
+        [{ text: 'OK' }]
+      );
+      return;
+    }
+
+    const bid = await generateBid(projectId, {
+      blueprint_id: analyzedBlueprint.id,
+      markup_percentage: 20,
+    });
+
+    if (bid) {
+      Alert.alert(
+        'Bid Generated',
+        'Your bid has been successfully generated!',
+        [
+          {
+            text: 'View Bid',
+            onPress: () => {
+              refetchBids();
+            },
+          },
+          { text: 'OK', onPress: () => refetchBids() },
+        ]
+      );
+    } else {
+      Alert.alert('Error', 'Failed to generate bid. Please try again.');
+    }
+  };
+
+  const handleDownloadPDF = async (bid: Bid) => {
+    if (bid.pdf_url) {
+      try {
+        await Linking.openURL(bid.pdf_url);
+      } catch (err) {
+        Alert.alert('Error', 'Failed to open PDF');
+      }
+    }
+  };
+
+  const renderBid = (bid: Bid) => (
+    <View key={bid.id} style={styles.bidItem}>
+      <View style={styles.bidInfo}>
+        <Text style={styles.bidName}>{bid.name || 'Untitled Bid'}</Text>
+        <View style={styles.statusRow}>
+          <View style={[styles.statusDot, { backgroundColor: STATUS_COLORS[bid.status] || COLORS.primary }]} />
+          <Text style={styles.statusLabel}>Status: {bid.status}</Text>
+        </View>
+        {bid.final_price && (
+          <Text style={styles.bidPrice}>
+            Total: ${bid.final_price.toFixed(2)}
+          </Text>
+        )}
+        <Text style={styles.bidDate}>
+          Created: {new Date(bid.created_at).toLocaleDateString()}
+        </Text>
+      </View>
+      {bid.pdf_url && (
+        <Button
+          title="Download PDF"
+          onPress={() => handleDownloadPDF(bid)}
+          style={styles.downloadButton}
+        />
+      )}
+    </View>
   );
 
   if (projectLoading) {
@@ -127,6 +209,51 @@ export default function ProjectDetailScreen() {
         {!blueprintsLoading && !blueprintsError && blueprints && blueprints.length > 0 && (
           <View style={styles.blueprintsList}>
             {blueprints.map(renderBlueprint)}
+          </View>
+        )}
+      </Card>
+
+      <Card style={styles.bidsCard}>
+        <View style={styles.bidsHeader}>
+          <Text style={styles.sectionTitle}>Bids</Text>
+          <Button
+            title={isGeneratingBid ? "Generating..." : "Generate Bid"}
+            onPress={handleGenerateBid}
+            disabled={isGeneratingBid}
+            style={styles.generateButton}
+          />
+        </View>
+
+        {bidsLoading && (
+          <View style={styles.loadingContainer}>
+            <ActivityIndicator color={COLORS.primary} />
+            <Text style={styles.loadingText}>Loading bids...</Text>
+          </View>
+        )}
+
+        {bidsError && (
+          <View style={styles.errorContainer}>
+            <Text style={styles.errorText}>Failed to load bids</Text>
+            <Button
+              title="Retry"
+              onPress={refetchBids}
+              variant="secondary"
+              style={styles.retryButton}
+            />
+          </View>
+        )}
+
+        {!bidsLoading && !bidsError && bids && bids.length === 0 && (
+          <View style={styles.emptyContainer}>
+            <Text style={styles.emptyEmoji}>📄</Text>
+            <Text style={styles.emptyText}>No bids yet</Text>
+            <Text style={styles.emptySubtext}>Generate a bid from analyzed blueprints</Text>
+          </View>
+        )}
+
+        {!bidsLoading && !bidsError && bids && bids.length > 0 && (
+          <View style={styles.bidsList}>
+            {bids.map(renderBid)}
           </View>
         )}
       </Card>
@@ -286,5 +413,51 @@ const styles = StyleSheet.create({
   backButton: {
     margin: 16,
     marginTop: 8,
+  },
+  bidsCard: {
+    margin: 16,
+    marginTop: 0,
+  },
+  bidsHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 16,
+  },
+  generateButton: {
+    minWidth: 140,
+  },
+  bidsList: {
+    marginTop: 8,
+  },
+  bidItem: {
+    borderTopWidth: 1,
+    borderTopColor: COLORS.border,
+    paddingVertical: 12,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  bidInfo: {
+    flex: 1,
+  },
+  bidName: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: COLORS.text.primary,
+    marginBottom: 8,
+  },
+  bidPrice: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: COLORS.primary,
+    marginBottom: 4,
+  },
+  bidDate: {
+    fontSize: 12,
+    color: COLORS.text.secondary,
+  },
+  downloadButton: {
+    minWidth: 120,
   },
 });

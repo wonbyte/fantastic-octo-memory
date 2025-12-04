@@ -40,4 +40,9 @@ export const STATUS_COLORS = {
   not_started: '#9CA3AF',
   active: '#10B981',
   archived: '#6B7280',
+  // Bid statuses
+  draft: '#F59E0B',
+  sent: '#3B82F6',
+  accepted: '#10B981',
+  rejected: '#EF4444',
 };
