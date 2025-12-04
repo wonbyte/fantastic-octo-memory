@@ -113,3 +113,36 @@ func (s *AIService) Health(ctx context.Context) error {
 
 	return nil
 }
+
+// GenerateBid calls the AI service to generate a bid
+func (s *AIService) GenerateBid(ctx context.Context, request interface{}) (string, error) {
+	jsonData, err := json.Marshal(request)
+	if err != nil {
+		return "", fmt.Errorf("failed to marshal request: %w", err)
+	}
+
+	url := fmt.Sprintf("%s/generate-bid", s.baseURL)
+	req, err := http.NewRequestWithContext(ctx, http.MethodPost, url, bytes.NewBuffer(jsonData))
+	if err != nil {
+		return "", fmt.Errorf("failed to create request: %w", err)
+	}
+
+	req.Header.Set("Content-Type", "application/json")
+
+	resp, err := s.client.Do(req)
+	if err != nil {
+		return "", fmt.Errorf("failed to call AI service: %w", err)
+	}
+	defer resp.Body.Close()
+
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return "", fmt.Errorf("failed to read response body: %w", err)
+	}
+
+	if resp.StatusCode != http.StatusOK {
+		return "", fmt.Errorf("AI service returned status %d: %s", resp.StatusCode, string(body))
+	}
+
+	return string(body), nil
+}

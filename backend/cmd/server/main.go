@@ -48,6 +48,7 @@ func main() {
 	projectRepo := repository.NewProjectRepository(db)
 	blueprintRepo := repository.NewBlueprintRepository(db)
 	jobRepo := repository.NewJobRepository(db)
+	bidRepo := repository.NewBidRepository(db)
 
 	// Initialize services
 	s3Service, err := services.NewS3Service(cfg)
@@ -74,7 +75,7 @@ func main() {
 	}()
 
 	// Initialize handlers
-	handler := handlers.NewHandler(db, projectRepo, blueprintRepo, jobRepo, s3Service, aiService)
+	handler := handlers.NewHandler(db, projectRepo, blueprintRepo, jobRepo, bidRepo, s3Service, aiService)
 
 	// Setup router
 	r := chi.NewRouter()
@@ -99,6 +100,13 @@ func main() {
 	// Job routes
 	r.Post("/blueprints/{id}/analyze", handler.AnalyzeBlueprint)
 	r.Get("/jobs/{id}", handler.GetJobStatus)
+
+	// Bid routes
+	r.Get("/projects/{id}/pricing-summary", handler.GetPricingSummary)
+	r.Post("/projects/{id}/generate-bid", handler.GenerateBid)
+	r.Get("/projects/{id}/bids", handler.GetProjectBids)
+	r.Get("/bids/{id}", handler.GetBid)
+	r.Get("/bids/{id}/pdf", handler.GetBidPDF)
 
 	// Create HTTP server
 	srv := &http.Server{

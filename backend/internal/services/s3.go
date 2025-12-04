@@ -1,6 +1,7 @@
 package services
 
 import (
+	"bytes"
 	"context"
 	"fmt"
 	"log/slog"
@@ -127,3 +128,27 @@ func (s *S3Service) EnsureBucket(ctx context.Context) error {
 	slog.Info("S3 bucket created", "bucket", s.config.Bucket)
 	return nil
 }
+
+// UploadFile uploads a file to S3 and returns the public URL
+func (s *S3Service) UploadFile(ctx context.Context, key string, data []byte, contentType string) (string, error) {
+	_, err := s.client.PutObject(ctx, &s3.PutObjectInput{
+		Bucket:      aws.String(s.config.Bucket),
+		Key:         aws.String(key),
+		Body:        bytes.NewReader(data),
+		ContentType: aws.String(contentType),
+	})
+
+	if err != nil {
+		return "", fmt.Errorf("failed to upload file: %w", err)
+	}
+
+	// Generate URL
+	url := fmt.Sprintf("%s/%s/%s", s.config.Endpoint, s.config.Bucket, key)
+	if !s.config.UsePathStyle {
+		url = fmt.Sprintf("%s/%s", strings.Replace(s.config.Endpoint, "://", fmt.Sprintf("://%s.", s.config.Bucket), 1), key)
+	}
+
+	slog.Info("File uploaded to S3", "key", key, "url", url)
+	return url, nil
+}
+
