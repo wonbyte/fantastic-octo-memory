@@ -14,6 +14,7 @@ type Handler struct {
 	projectRepo   *repository.ProjectRepository
 	blueprintRepo *repository.BlueprintRepository
 	jobRepo       *repository.JobRepository
+	bidRepo       *repository.BidRepository
 	s3Service     *services.S3Service
 	aiService     *services.AIService
 }
@@ -23,6 +24,7 @@ func NewHandler(
 	projectRepo *repository.ProjectRepository,
 	blueprintRepo *repository.BlueprintRepository,
 	jobRepo *repository.JobRepository,
+	bidRepo *repository.BidRepository,
 	s3Service *services.S3Service,
 	aiService *services.AIService,
 ) *Handler {
@@ -31,6 +33,7 @@ func NewHandler(
 		projectRepo:   projectRepo,
 		blueprintRepo: blueprintRepo,
 		jobRepo:       jobRepo,
+		bidRepo:       bidRepo,
 		s3Service:     s3Service,
 		aiService:     aiService,
 	}

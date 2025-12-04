@@ -97,8 +97,8 @@ const (
 )
 
 type Bid struct {
-	ID               uuid.UUID `json:"id"`
-	ProjectID        uuid.UUID `json:"project_id"`
+	ID               uuid.UUID  `json:"id"`
+	ProjectID        uuid.UUID  `json:"project_id"`
 	JobID            *uuid.UUID `json:"job_id"`
 	Name             *string    `json:"name"`
 	TotalCost        *float64   `json:"total_cost"`
@@ -108,6 +108,8 @@ type Bid struct {
 	FinalPrice       *float64   `json:"final_price"`
 	Status           BidStatus  `json:"status"`
 	BidData          *string    `json:"bid_data"` // JSONB stored as string
+	PDFURL           *string    `json:"pdf_url"`
+	PDFS3Key         *string    `json:"pdf_s3_key"`
 	CreatedAt        time.Time  `json:"created_at"`
 	UpdatedAt        time.Time  `json:"updated_at"`
 }
@@ -191,4 +193,74 @@ type FixtureSummary struct {
 	FixtureType string `json:"fixture_type"`
 	Category    string `json:"category"`
 	Count       int    `json:"count"`
+}
+
+// Pricing models for cost estimation
+
+type PricingConfig struct {
+	MaterialPrices map[string]float64 `json:"material_prices"` // Material name -> price per unit
+	LaborRates     map[string]float64 `json:"labor_rates"`     // Trade -> hourly rate
+	OverheadRate   float64            `json:"overhead_rate"`   // Overhead percentage
+	ProfitMargin   float64            `json:"profit_margin"`   // Profit margin percentage
+}
+
+type LineItem struct {
+	Description string  `json:"description"`
+	Trade       string  `json:"trade"`        // e.g., electrical, plumbing, framing
+	Quantity    float64 `json:"quantity"`
+	Unit        string  `json:"unit"`
+	UnitCost    float64 `json:"unit_cost"`
+	Total       float64 `json:"total"`
+}
+
+type PricingSummary struct {
+	LineItems        []LineItem         `json:"line_items"`
+	LaborCost        float64            `json:"labor_cost"`
+	MaterialCost     float64            `json:"material_cost"`
+	Subtotal         float64            `json:"subtotal"`
+	OverheadAmount   float64            `json:"overhead_amount"`
+	MarkupAmount     float64            `json:"markup_amount"`
+	TotalPrice       float64            `json:"total_price"`
+	CostsByTrade     map[string]float64 `json:"costs_by_trade"`
+}
+
+// Bid generation request/response models
+
+type GenerateBidRequest struct {
+	ProjectID        uuid.UUID      `json:"project_id"`
+	BlueprintID      uuid.UUID      `json:"blueprint_id"`
+	TakeoffData      interface{}    `json:"takeoff_data"`
+	PricingRules     *PricingConfig `json:"pricing_rules,omitempty"`
+	CompanyInfo      interface{}    `json:"company_info,omitempty"`
+	MarkupPercentage float64        `json:"markup_percentage"`
+}
+
+type GenerateBidResponse struct {
+	BidID            string     `json:"bid_id"`
+	ProjectID        string     `json:"project_id"`
+	Status           string     `json:"status"`
+	ScopeOfWork      string     `json:"scope_of_work"`
+	LineItems        []LineItem `json:"line_items"`
+	LaborCost        float64    `json:"labor_cost"`
+	MaterialCost     float64    `json:"material_cost"`
+	Subtotal         float64    `json:"subtotal"`
+	MarkupAmount     float64    `json:"markup_amount"`
+	TotalPrice       float64    `json:"total_price"`
+	Exclusions       []string   `json:"exclusions"`
+	Inclusions       []string   `json:"inclusions"`
+	Schedule         map[string]string `json:"schedule"`
+	PaymentTerms     string     `json:"payment_terms"`
+	WarrantyTerms    string     `json:"warranty_terms"`
+	ClosingStatement string     `json:"closing_statement"`
+}
+
+type BidPDFInfo struct {
+	PDFURL   string `json:"pdf_url"`
+	S3Key    string `json:"s3_key"`
+}
+
+// Extended Bid model to include PDF info
+func (b *Bid) GetPDFInfo() *BidPDFInfo {
+	// PDF URL is stored in bid_data JSONB field
+	return nil
 }
