@@ -97,6 +97,7 @@ export interface AnalysisResult {
   openings?: Opening[];
   fixtures?: Fixture[];
   measurements?: Measurement[];
+  materials?: Material[];
   summary?: {
     total_rooms: number;
     total_openings: number;
@@ -106,35 +107,68 @@ export interface AnalysisResult {
 }
 
 export interface Room {
-  id: string;
-  type: string;
   name: string;
+  dimensions: string;
   area: number;
-  perimeter: number;
-  coordinates?: Coordinate[];
+  room_type?: string;
 }
 
 export interface Opening {
-  id: string;
-  type: 'door' | 'window';
-  width: number;
-  height: number;
-  location: string;
+  opening_type: string;
+  count: number;
+  size: string;
+  details?: string;
 }
 
 export interface Fixture {
-  id: string;
-  type: string;
-  quantity: number;
-  location: string;
+  fixture_type: string;
+  category: string;
+  count: number;
+  details?: string;
 }
 
 export interface Measurement {
-  id: string;
-  type: string;
+  measurement_type: string;
   value: number;
   unit: string;
-  description?: string;
+  location?: string;
+}
+
+export interface Material {
+  material_name: string;
+  quantity: number;
+  unit: string;
+  specifications?: string;
+}
+
+export interface TakeoffSummary {
+  total_area: number;
+  total_perimeter: number;
+  opening_counts: Record<string, number>;
+  fixture_counts: Record<string, number>;
+  room_count: number;
+  room_breakdown: RoomSummary[];
+  opening_breakdown: OpeningSummary[];
+  fixture_breakdown: FixtureSummary[];
+}
+
+export interface RoomSummary {
+  name: string;
+  room_type?: string;
+  area: number;
+  dimensions: string;
+}
+
+export interface OpeningSummary {
+  opening_type: string;
+  count: number;
+  size: string;
+}
+
+export interface FixtureSummary {
+  fixture_type: string;
+  category: string;
+  count: number;
 }
 
 export interface Coordinate {

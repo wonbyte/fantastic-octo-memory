@@ -5,6 +5,8 @@ import {
   UploadUrlResponse,
   CompleteUploadRequest,
   TriggerAnalysisResponse,
+  AnalysisResult,
+  TakeoffSummary,
 } from '../types';
 import axios from 'axios';
 
@@ -45,6 +47,20 @@ export const blueprintsApi = {
   triggerAnalysis: async (blueprintId: string): Promise<TriggerAnalysisResponse> => {
     const response = await apiClient.post<TriggerAnalysisResponse>(
       `/blueprints/${blueprintId}/analyze`
+    );
+    return response.data;
+  },
+
+  getAnalysis: async (blueprintId: string): Promise<AnalysisResult> => {
+    const response = await apiClient.get<AnalysisResult>(
+      `/blueprints/${blueprintId}/analysis`
+    );
+    return response.data;
+  },
+
+  getTakeoffSummary: async (blueprintId: string): Promise<TakeoffSummary> => {
+    const response = await apiClient.get<TakeoffSummary>(
+      `/blueprints/${blueprintId}/takeoff-summary`
     );
     return response.data;
   },
