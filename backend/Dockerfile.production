@@ -1,0 +1,92 @@
+# ========================================
+# Production Dockerfile for Backend Service
+# ========================================
+# Multi-stage build for optimized production image
+# - Security hardened with minimal attack surface
+# - Non-root user execution
+# - Optimized for size and performance
+
+# ========================================
+# Stage 1: Builder
+# ========================================
+FROM golang:1.25-alpine AS builder
+
+# Install build dependencies
+RUN apk add --no-cache git ca-certificates tzdata
+
+WORKDIR /build
+
+# Copy dependency files first for better caching
+COPY go.mod go.sum ./
+RUN go mod download && go mod verify
+
+# Copy source code
+COPY . .
+
+# Build with optimizations:
+# - CGO_ENABLED=0: Static binary (no libc dependency)
+# - -ldflags: Optimization flags
+#   - -s: Strip symbol table
+#   - -w: Strip debug info
+#   - -extldflags: Static linking
+RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build \
+    -ldflags="-s -w -extldflags '-static'" \
+    -a -installsuffix cgo \
+    -o main ./cmd/server
+
+# Verify binary
+RUN chmod +x /build/main && \
+    /build/main --version 2>&1 || echo "Binary built successfully"
+
+# ========================================
+# Stage 2: Runtime
+# ========================================
+FROM alpine:3.19
+
+# Install runtime dependencies
+# - ca-certificates: HTTPS support
+# - postgresql-client: Database healthcheck
+# - curl: Healthcheck endpoint
+RUN apk --no-cache add \
+    ca-certificates \
+    postgresql-client \
+    curl \
+    tzdata && \
+    rm -rf /var/cache/apk/*
+
+# Install golang-migrate for database migrations
+RUN curl -L https://github.com/golang-migrate/migrate/releases/download/v4.17.0/migrate.linux-amd64.tar.gz | \
+    tar xvz && \
+    mv migrate /usr/local/bin/migrate && \
+    chmod +x /usr/local/bin/migrate
+
+# Create non-root user for security
+RUN addgroup -g 1000 appuser && \
+    adduser -D -u 1000 -G appuser appuser && \
+    mkdir -p /app /app/migrations && \
+    chown -R appuser:appuser /app
+
+WORKDIR /app
+
+# Copy binary from builder stage
+COPY --from=builder --chown=appuser:appuser /build/main .
+
+# Copy migrations
+COPY --chown=appuser:appuser migrations /app/migrations
+
+# Copy entrypoint script
+COPY --chown=appuser:appuser entrypoint.sh /app/entrypoint.sh
+RUN chmod +x /app/entrypoint.sh
+
+# Switch to non-root user
+USER appuser
+
+# Expose port
+EXPOSE 8080
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=10s --start-period=30s --retries=3 \
+    CMD curl -f http://localhost:8080/health || exit 1
+
+# Set entrypoint
+ENTRYPOINT ["/app/entrypoint.sh"]

@@ -202,6 +202,100 @@ cd ai_service && ruff format .
 cd app && npm run format
 ```
 
+## 🚢 Production Deployment
+
+### Quick Deploy
+
+The platform includes production-ready Docker images and deployment configurations for various platforms.
+
+#### Build Production Images
+
+```bash
+# Build all production images
+./scripts/push-images.sh --version 1.0.0 \
+  --api-url https://api.yourdomain.com \
+  --ai-url https://ai.yourdomain.com
+
+# Or use environment variables
+export VERSION=1.0.0
+export REGISTRY=ghcr.io
+export NAMESPACE=your-username/project-name
+./scripts/push-images.sh
+```
+
+#### Deploy Options
+
+**1. Docker Compose (Recommended for MVP)**
+```bash
+# Copy and configure production environment
+cp .env.production.example .env.production
+# Edit .env.production with your configuration
+
+# Deploy with docker-compose
+docker-compose -f docker-compose.production.yml --env-file .env.production up -d
+```
+
+**2. Platform-Specific Deployments**
+
+- **AWS ECS**: See [DEPLOYMENT.md - AWS ECS Section](./DEPLOYMENT.md#option-1-aws-ecs)
+- **Fly.io**: See [DEPLOYMENT.md - Fly.io Section](./DEPLOYMENT.md#option-2-flyio)
+- **Railway**: See [DEPLOYMENT.md - Railway Section](./DEPLOYMENT.md#option-3-railway)
+- **Self-Hosted**: See [DEPLOYMENT.md - Self-Hosted Section](./DEPLOYMENT.md#option-4-self-hosted-with-docker-compose)
+
+### Production Files
+
+- **Production Dockerfiles**:
+  - `backend/Dockerfile.production` - Multi-stage optimized Go build
+  - `ai_service/Dockerfile.production` - Multi-stage optimized Python build
+  - `app/Dockerfile.production` - Static web build with Nginx
+  
+- **Configuration**:
+  - `docker-compose.production.yml` - Production Docker Compose setup
+  - `.env.production.example` - Production environment template
+  
+- **Documentation**:
+  - [DEPLOYMENT.md](./DEPLOYMENT.md) - Complete deployment guide
+  - [E2E_TESTING.md](./E2E_TESTING.md) - End-to-end testing and validation
+
+### Security Checklist
+
+Before deploying to production:
+
+- ✅ Change all default passwords
+- ✅ Generate secure JWT_SECRET
+- ✅ Configure HTTPS/TLS
+- ✅ Set up database backups
+- ✅ Enable error tracking (Sentry)
+- ✅ Configure monitoring
+- ✅ Review security headers
+- ✅ Test E2E flow
+
+See [DEPLOYMENT.md - Security Checklist](./DEPLOYMENT.md#security-checklist) for complete list.
+
+### E2E Validation
+
+After deployment, validate the complete user flow:
+
+```bash
+# Run automated E2E tests
+npx playwright test
+
+# Or follow manual testing guide
+# See E2E_TESTING.md for detailed scenarios
+```
+
+Test the complete flow:
+1. ✅ User signup/login
+2. ✅ Project creation
+3. ✅ Blueprint upload
+4. ✅ AI analysis
+5. ✅ Bid generation
+6. ✅ PDF download
+
+See [E2E_TESTING.md](./E2E_TESTING.md) for detailed testing procedures.
+
+---
+
 ## 🤝 Contributing
 
 1. Create a feature branch from `main`
@@ -216,3 +310,13 @@ cd app && npm run format
 ## 🆘 Support
 
 For issues and questions, please open a GitHub issue.
+
+## 📚 Additional Documentation
+
+- [DEPLOYMENT.md](./DEPLOYMENT.md) - Production deployment guide
+- [E2E_TESTING.md](./E2E_TESTING.md) - End-to-end testing guide
+- [M5_IMPLEMENTATION_SUMMARY.md](./M5_IMPLEMENTATION_SUMMARY.md) - Milestone 5 summary
+- [M6_IMPLEMENTATION_SUMMARY.md](./M6_IMPLEMENTATION_SUMMARY.md) - Milestone 6 summary
+- [backend/README.md](./backend/README.md) - Backend service documentation
+- [ai_service/README.md](./ai_service/README.md) - AI service documentation (if exists)
+- [app/README.md](./app/README.md) - Frontend application documentation

@@ -1,0 +1,60 @@
+# Ignore development files and build artifacts
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.npm
+.yarn/
+
+# Build output
+dist/
+.expo/
+.expo-shared/
+web-build/
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Git
+.git/
+.gitignore
+
+# Documentation (except production docs)
+*.md
+!README.md
+
+# Environment files
+.env
+.env.*
+!.env.example
+
+# Test files
+__tests__/
+**/*.test.ts
+**/*.test.tsx
+**/*.spec.ts
+**/*.spec.tsx
+jest.config.js
+coverage/
+
+# CI/CD
+.github/
+
+# Development configs
+Dockerfile
+!Dockerfile.production
+!nginx.conf
+docker-compose*.yml
+Makefile
+
+# TypeScript
+*.tsbuildinfo
+
+# Misc
+*.log
+.cache/

@@ -1,0 +1,52 @@
+# Ignore development files and build artifacts
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Go specific
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+*.test
+*.out
+/vendor/
+/bin/
+/tmp/
+
+# IDE
+.idea/
+.vscode/
+*.iml
+
+# Git
+.git/
+.gitignore
+
+# Documentation (except production docs)
+*.md
+!README.md
+
+# Environment files
+.env
+.env.*
+!.env.example
+
+# Test files
+*_test.go
+testdata/
+
+# Coverage reports
+coverage.out
+coverage.html
+
+# CI/CD
+.github/
+
+# Other
+Dockerfile
+!Dockerfile.production
+docker-compose*.yml
+Makefile
