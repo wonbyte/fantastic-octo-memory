@@ -1,10 +1,12 @@
 package handlers
 
 import (
+	"context"
 	"encoding/json"
 	"log/slog"
 	"net/http"
 
+	"github.com/wonbyte/fantastic-octo-memory/backend/internal/middleware"
 	"github.com/wonbyte/fantastic-octo-memory/backend/internal/repository"
 	"github.com/wonbyte/fantastic-octo-memory/backend/internal/services"
 )
@@ -15,8 +17,10 @@ type Handler struct {
 	blueprintRepo *repository.BlueprintRepository
 	jobRepo       *repository.JobRepository
 	bidRepo       *repository.BidRepository
+	userRepo      *repository.UserRepository
 	s3Service     *services.S3Service
 	aiService     *services.AIService
+	authService   *services.AuthService
 }
 
 func NewHandler(
@@ -25,8 +29,10 @@ func NewHandler(
 	blueprintRepo *repository.BlueprintRepository,
 	jobRepo *repository.JobRepository,
 	bidRepo *repository.BidRepository,
+	userRepo *repository.UserRepository,
 	s3Service *services.S3Service,
 	aiService *services.AIService,
+	authService *services.AuthService,
 ) *Handler {
 	return &Handler{
 		db:            db,
@@ -34,26 +40,38 @@ func NewHandler(
 		blueprintRepo: blueprintRepo,
 		jobRepo:       jobRepo,
 		bidRepo:       bidRepo,
+		userRepo:      userRepo,
 		s3Service:     s3Service,
 		aiService:     aiService,
+		authService:   authService,
 	}
 }
 
 func (h *Handler) Health(w http.ResponseWriter, r *http.Request) {
-	// Check database health
-	if err := h.db.Health(r.Context()); err != nil {
-		respondJSON(w, http.StatusServiceUnavailable, map[string]interface{}{
-			"status":  "unhealthy",
-			"version": "1.0.0",
-			"error":   "database unavailable",
-		})
-		return
-	}
-
-	respondJSON(w, http.StatusOK, map[string]interface{}{
+	ctx := r.Context()
+	healthStatus := map[string]interface{}{
 		"status":  "ok",
 		"version": "1.0.0",
-	})
+	}
+
+	// Check database health
+	if err := h.db.Health(ctx); err != nil {
+		healthStatus["status"] = "unhealthy"
+		healthStatus["database"] = "unavailable"
+		healthStatus["error"] = "database unavailable"
+		respondJSON(w, http.StatusServiceUnavailable, healthStatus)
+		return
+	}
+	healthStatus["database"] = "ok"
+
+	// Check AI service health (optional - don't fail health check if AI service is down)
+	if err := h.aiService.Health(ctx); err != nil {
+		healthStatus["ai_service"] = "degraded"
+	} else {
+		healthStatus["ai_service"] = "ok"
+	}
+
+	respondJSON(w, http.StatusOK, healthStatus)
 }
 
 func (h *Handler) Root(w http.ResponseWriter, r *http.Request) {
@@ -74,4 +92,26 @@ func respondJSON(w http.ResponseWriter, status int, data interface{}) {
 
 func respondError(w http.ResponseWriter, status int, message string) {
 	respondJSON(w, status, map[string]string{"error": message})
+}
+
+// Helper functions to extract values from context
+func getUserID(ctx context.Context) string {
+	if val := ctx.Value(middleware.ContextKeyUserID); val != nil {
+		return val.(string)
+	}
+	return ""
+}
+
+func getEmail(ctx context.Context) string {
+	if val := ctx.Value(middleware.ContextKeyEmail); val != nil {
+		return val.(string)
+	}
+	return ""
+}
+
+func getCorrelationID(ctx context.Context) string {
+	if val := ctx.Value(middleware.ContextKeyCorrelationID); val != nil {
+		return val.(string)
+	}
+	return ""
 }

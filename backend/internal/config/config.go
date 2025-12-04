@@ -15,6 +15,7 @@ type Config struct {
 	S3       S3Config
 	AI       AIConfig
 	Worker   WorkerConfig
+	Auth     AuthConfig
 }
 
 type ServerConfig struct {
@@ -48,6 +49,11 @@ type WorkerConfig struct {
 	MaxRetries   int
 }
 
+type AuthConfig struct {
+	JWTSecret   string
+	TokenExpiry time.Duration
+}
+
 func Load() (*Config, error) {
 	// Try to load .env file (optional in production)
 	_ = godotenv.Load()
@@ -69,6 +75,8 @@ func Load() (*Config, error) {
 	viper.SetDefault("WORKER_MAX_RETRIES", 3)
 	viper.SetDefault("DB_MAX_CONNECTIONS", 25)
 	viper.SetDefault("DB_MAX_IDLE_CONNECTIONS", 5)
+	viper.SetDefault("JWT_SECRET", "change-this-secret-in-production")
+	viper.SetDefault("JWT_TOKEN_EXPIRY", "24h")
 
 	// Auto bind environment variables
 	viper.AutomaticEnv()
@@ -90,6 +98,12 @@ func Load() (*Config, error) {
 	if err != nil {
 		pollInterval = 5 * time.Second
 		log.Printf("Warning: Invalid JOB_POLL_INTERVAL, using default: %s", pollInterval)
+	}
+
+	tokenExpiry, err := time.ParseDuration(viper.GetString("JWT_TOKEN_EXPIRY"))
+	if err != nil {
+		tokenExpiry = 24 * time.Hour
+		log.Printf("Warning: Invalid JWT_TOKEN_EXPIRY, using default: %s", tokenExpiry)
 	}
 
 	config := &Config{
@@ -118,6 +132,10 @@ func Load() (*Config, error) {
 		Worker: WorkerConfig{
 			PollInterval: pollInterval,
 			MaxRetries:   viper.GetInt("WORKER_MAX_RETRIES"),
+		},
+		Auth: AuthConfig{
+			JWTSecret:   viper.GetString("JWT_SECRET"),
+			TokenExpiry: tokenExpiry,
 		},
 	}
 

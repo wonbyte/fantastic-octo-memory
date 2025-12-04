@@ -46,6 +46,9 @@ class Settings(BaseSettings):
     # Redis (for caching)
     redis_url: str = Field(default="redis://redis:6379/0", description="Redis URL")
 
+    # Sentry
+    sentry_dsn: str = Field(default="", description="Sentry DSN for error tracking")
+
 
 @lru_cache
 def get_settings() -> Settings:

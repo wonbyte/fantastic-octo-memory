@@ -9,6 +9,7 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/getsentry/sentry-go"
 	"github.com/go-chi/chi/v5"
 	"github.com/wonbyte/fantastic-octo-memory/backend/internal/config"
 	"github.com/wonbyte/fantastic-octo-memory/backend/internal/handlers"
@@ -36,6 +37,23 @@ func main() {
 		"env", cfg.Server.Env,
 		"port", cfg.Server.Port)
 
+	// Initialize Sentry for error tracking
+	sentryDSN := os.Getenv("SENTRY_DSN")
+	if sentryDSN != "" {
+		err := sentry.Init(sentry.ClientOptions{
+			Dsn:              sentryDSN,
+			Environment:      cfg.Server.Env,
+			TracesSampleRate: 1.0,
+			Release:          "backend@1.0.0",
+		})
+		if err != nil {
+			slog.Warn("Failed to initialize Sentry", "error", err)
+		} else {
+			slog.Info("Sentry initialized for error tracking")
+			defer sentry.Flush(2 * time.Second)
+		}
+	}
+
 	// Initialize database
 	db, err := repository.NewDatabase(cfg)
 	if err != nil {
@@ -49,6 +67,7 @@ func main() {
 	blueprintRepo := repository.NewBlueprintRepository(db)
 	jobRepo := repository.NewJobRepository(db)
 	bidRepo := repository.NewBidRepository(db)
+	userRepo := repository.NewUserRepository(db)
 
 	// Initialize services
 	s3Service, err := services.NewS3Service(cfg)
@@ -65,6 +84,9 @@ func main() {
 
 	aiService := services.NewAIService(cfg)
 
+	// Initialize auth service
+	authService := services.NewAuthService(cfg.Auth.JWTSecret, cfg.Auth.TokenExpiry)
+
 	// Initialize worker
 	worker := services.NewWorker(jobRepo, blueprintRepo, aiService, cfg)
 	ctx, cancel := context.WithCancel(context.Background())
@@ -75,38 +97,51 @@ func main() {
 	}()
 
 	// Initialize handlers
-	handler := handlers.NewHandler(db, projectRepo, blueprintRepo, jobRepo, bidRepo, s3Service, aiService)
+	handler := handlers.NewHandler(db, projectRepo, blueprintRepo, jobRepo, bidRepo, userRepo, s3Service, aiService, authService)
 
 	// Setup router
 	r := chi.NewRouter()
 
 	// Middleware
+	r.Use(middleware.CorrelationID)
 	r.Use(middleware.Logger)
 	r.Use(middleware.Recovery)
 	r.Use(middleware.CORS)
 
-	// Routes
+	// Public routes
 	r.Get("/", handler.Root)
 	r.Get("/health", handler.Health)
 
-	// Blueprint upload routes
-	r.Post("/projects/{id}/blueprints/upload-url", handler.CreateUploadURL)
-	r.Post("/blueprints/{id}/complete-upload", handler.CompleteUpload)
+	// Auth routes (public)
+	r.Post("/auth/signup", handler.Signup)
+	r.Post("/auth/login", handler.Login)
+	
+	// Protected routes
+	r.Group(func(r chi.Router) {
+		r.Use(middleware.Auth(authService))
+		
+		// User routes
+		r.Get("/auth/me", handler.GetCurrentUser)
 
-	// Blueprint analysis routes
-	r.Get("/blueprints/{id}/analysis", handler.GetBlueprintAnalysis)
-	r.Get("/blueprints/{id}/takeoff-summary", handler.GetBlueprintTakeoffSummary)
+		// Blueprint upload routes
+		r.Post("/projects/{id}/blueprints/upload-url", handler.CreateUploadURL)
+		r.Post("/blueprints/{id}/complete-upload", handler.CompleteUpload)
 
-	// Job routes
-	r.Post("/blueprints/{id}/analyze", handler.AnalyzeBlueprint)
-	r.Get("/jobs/{id}", handler.GetJobStatus)
+		// Blueprint analysis routes
+		r.Get("/blueprints/{id}/analysis", handler.GetBlueprintAnalysis)
+		r.Get("/blueprints/{id}/takeoff-summary", handler.GetBlueprintTakeoffSummary)
 
-	// Bid routes
-	r.Get("/projects/{id}/pricing-summary", handler.GetPricingSummary)
-	r.Post("/projects/{id}/generate-bid", handler.GenerateBid)
-	r.Get("/projects/{id}/bids", handler.GetProjectBids)
-	r.Get("/bids/{id}", handler.GetBid)
-	r.Get("/bids/{id}/pdf", handler.GetBidPDF)
+		// Job routes
+		r.Post("/blueprints/{id}/analyze", handler.AnalyzeBlueprint)
+		r.Get("/jobs/{id}", handler.GetJobStatus)
+
+		// Bid routes
+		r.Get("/projects/{id}/pricing-summary", handler.GetPricingSummary)
+		r.Post("/projects/{id}/generate-bid", handler.GenerateBid)
+		r.Get("/projects/{id}/bids", handler.GetProjectBids)
+		r.Get("/bids/{id}", handler.GetBid)
+		r.Get("/bids/{id}/pdf", handler.GetBidPDF)
+	})
 
 	// Create HTTP server
 	srv := &http.Server{
