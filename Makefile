@@ -1,17 +1,24 @@
-.PHONY: help dev start stop build clean logs test
+.PHONY: help dev start stop build clean logs test prod-build prod-start prod-stop prod-logs
 
 # Default target
 help:
 	@echo "Construction Estimation & Bidding Automation Platform"
 	@echo ""
-	@echo "Available targets:"
-	@echo "  make dev     - Start all services in development mode"
-	@echo "  make start   - Start all services"
-	@echo "  make stop    - Stop all services"
-	@echo "  make build   - Build all Docker images"
-	@echo "  make clean   - Remove containers and volumes"
-	@echo "  make logs    - Tail logs from all services"
-	@echo "  make test    - Run tests for all services"
+	@echo "Development Commands:"
+	@echo "  make dev           - Start all services in development mode"
+	@echo "  make start         - Start all services"
+	@echo "  make stop          - Stop all services"
+	@echo "  make build         - Build all Docker images"
+	@echo "  make clean         - Remove containers and volumes"
+	@echo "  make logs          - Tail logs from all services"
+	@echo "  make test          - Run tests for all services"
+	@echo ""
+	@echo "Production Commands:"
+	@echo "  make prod-build    - Build production Docker images"
+	@echo "  make prod-start    - Start production services"
+	@echo "  make prod-stop     - Stop production services"
+	@echo "  make prod-logs     - Tail production logs"
+	@echo "  make push-images   - Build and push images to registry"
 
 # Start all services in development mode
 dev:
@@ -54,3 +61,36 @@ test:
 	@echo "\n=== Testing App (React Native) ==="
 	cd app && npm install --silent && npm test
 	@echo "\n=== All tests completed ==="
+
+# Build production Docker images
+prod-build:
+	@echo "Building production Docker images..."
+	docker build -f backend/Dockerfile.production -t construction-backend:latest ./backend
+	docker build -f ai_service/Dockerfile.production -t construction-ai-service:latest ./ai_service
+	docker build -f app/Dockerfile.production -t construction-frontend:latest ./app
+	@echo "Production images built successfully!"
+
+# Start production services
+prod-start:
+	@echo "Starting production services..."
+	@if [ ! -f .env.production ]; then \
+		echo "Error: .env.production not found. Copy .env.production.example and configure it."; \
+		exit 1; \
+	fi
+	docker-compose -f docker-compose.production.yml --env-file .env.production up -d
+	@echo "Production services started!"
+
+# Stop production services
+prod-stop:
+	@echo "Stopping production services..."
+	docker-compose -f docker-compose.production.yml down
+
+# Tail production logs
+prod-logs:
+	@echo "Tailing production logs..."
+	docker-compose -f docker-compose.production.yml logs -f
+
+# Build and push images to container registry
+push-images:
+	@echo "Building and pushing images to container registry..."
+	./scripts/push-images.sh
