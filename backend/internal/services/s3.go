@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"log/slog"
+	"strings"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	awsConfig "github.com/aws/aws-sdk-go-v2/config"
@@ -85,8 +86,14 @@ func (s *S3Service) ObjectExists(ctx context.Context, key string) (bool, int64, 
 	})
 
 	if err != nil {
-		// Check if it's a "not found" error
-		return false, 0, nil
+		// Check if it's a "not found" error by examining the error string
+		// For AWS SDK v2, NotFound errors contain "NotFound" in the error message
+		errStr := err.Error()
+		if strings.Contains(errStr, "NotFound") || strings.Contains(errStr, "404") {
+			return false, 0, nil
+		}
+		// Return other errors (permissions, network, etc.)
+		return false, 0, fmt.Errorf("failed to check object existence: %w", err)
 	}
 
 	fileSize := int64(0)

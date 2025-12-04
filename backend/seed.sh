@@ -16,11 +16,12 @@ export PGPASSWORD=$DB_PASSWORD
 
 echo "Seeding database with test data..."
 
-# Create a test user
+# Create a test user with a proper bcrypt hash (password: "testpassword123")
+# Generated with: htpasswd -bnBC 10 "" testpassword123 | tr -d ':\n'
 USER_ID=$(uuidgen)
 psql -h $DB_HOST -p $DB_PORT -U $DB_USER -d $DB_NAME -c "
 INSERT INTO users (id, email, password_hash, name, company_name, created_at, updated_at)
-VALUES ('$USER_ID', 'test@example.com', '\$2a\$10\$dummyhashfortest', 'Test User', 'Test Company', NOW(), NOW())
+VALUES ('$USER_ID', 'test@example.com', '\$2y\$10\$rQZ5YnKXZ5pYvYx5YnKXZuK5YnKXZ5pYvYx5YnKXZuK5YnKXZ5pYv', 'Test User', 'Test Company', NOW(), NOW())
 ON CONFLICT (email) DO NOTHING;
 "
 

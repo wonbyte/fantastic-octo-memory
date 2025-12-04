@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"encoding/json"
+	"log/slog"
 	"net/http"
 
 	"github.com/wonbyte/fantastic-octo-memory/backend/internal/repository"
@@ -62,7 +63,10 @@ func (h *Handler) Root(w http.ResponseWriter, r *http.Request) {
 func respondJSON(w http.ResponseWriter, status int, data interface{}) {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(status)
-	json.NewEncoder(w).Encode(data)
+	if err := json.NewEncoder(w).Encode(data); err != nil {
+		// Log encoding error but don't panic - response has already been written
+		slog.Error("Failed to encode JSON response", "error", err)
+	}
 }
 
 func respondError(w http.ResponseWriter, status int, message string) {
