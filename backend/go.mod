@@ -1,8 +1,6 @@
 module github.com/wonbyte/fantastic-octo-memory/backend
 
-go 1.23.0
-
-toolchain go1.24.10
+go 1.25
 
 require (
 	github.com/aws/aws-sdk-go-v2 v1.40.1
