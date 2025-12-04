@@ -73,11 +73,27 @@ async def analyze_blueprint(request: AnalyzeBlueprintRequest) -> AnalyzeBlueprin
 
         # Analyze blueprint with vision model
         logger.info("analyzing_with_vision_model")
-        # For images, use the original bytes; for PDFs, we'd need the image
-        # In a real implementation, you'd convert the first page to an image
-        # For simplicity, we'll use file_bytes directly
+        # For PDFs, convert first page to image using OCR service
+        if file_type == "pdf":
+            # Convert PDF to image for vision analysis
+            from io import BytesIO
+
+            from pdf2image import convert_from_bytes
+            images = convert_from_bytes(file_bytes, dpi=200, first_page=1, last_page=1)
+            if images:
+                img_byte_arr = BytesIO()
+                images[0].save(img_byte_arr, format="PNG")
+                vision_bytes = img_byte_arr.getvalue()
+            else:
+                raise HTTPException(
+                    status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                    detail="Failed to convert PDF to image for vision analysis",
+                )
+        else:
+            vision_bytes = file_bytes
+
         analysis = await vision_service.analyze_blueprint(
-            file_bytes if file_type == "image" else file_bytes[:10000],  # Simplified
+            vision_bytes,
             ocr_result.raw_text,
             request.options,
         )
