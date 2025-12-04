@@ -155,9 +155,15 @@ class VisionService:
             # Parse JSON response
             # Try to extract JSON from markdown code blocks if present
             if "```json" in content:
-                content = content.split("```json")[1].split("```")[0].strip()
+                parts = content.split("```json")
+                if len(parts) > 1:
+                    json_parts = parts[1].split("```")
+                    if json_parts:
+                        content = json_parts[0].strip()
             elif "```" in content:
-                content = content.split("```")[1].split("```")[0].strip()
+                parts = content.split("```")
+                if len(parts) > 2:
+                    content = parts[1].strip()
 
             result = json.loads(content)
             return result
