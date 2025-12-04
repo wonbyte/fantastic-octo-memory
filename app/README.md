@@ -9,7 +9,7 @@ React Native + Expo application for the Construction Estimation & Bidding Automa
 - **React**: 19.0+
 - **TypeScript**: 5.9+
 - **Node.js**: 24 LTS
-- **Expo Router**: 4.0+ (File-based routing)
+- **Expo Router**: 6.0+ (File-based routing)
 - **React Query**: 5.60+ (Data fetching and caching)
 - **Axios**: HTTP client
 - **React Native Reanimated**: Animations
