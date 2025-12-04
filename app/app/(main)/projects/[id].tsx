@@ -52,7 +52,7 @@ export default function ProjectDetailScreen() {
   const handleGenerateBid = async () => {
     // Find first analyzed blueprint
     const analyzedBlueprint = blueprints?.find(
-      (bp) => bp.analysis_status === 'completed'
+      (bp) => bp.analysis_status === 'completed' as const
     );
 
     if (!analyzedBlueprint) {

@@ -255,12 +255,6 @@ type GenerateBidResponse struct {
 }
 
 type BidPDFInfo struct {
-	PDFURL   string `json:"pdf_url"`
-	S3Key    string `json:"s3_key"`
-}
-
-// Extended Bid model to include PDF info
-func (b *Bid) GetPDFInfo() *BidPDFInfo {
-	// PDF URL is stored in bid_data JSONB field
-	return nil
+	PDFURL string `json:"pdf_url"`
+	S3Key  string `json:"s3_key"`
 }
