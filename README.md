@@ -14,7 +14,7 @@ This platform streamlines the construction bidding process by:
 
 ```
 .
-├── backend/          # Go backend API service (Go 1.22+)
+├── backend/          # Go backend API service (Go 1.25+)
 ├── ai_service/       # Python FastAPI AI/ML service (Python 3.12+)
 ├── app/              # React Native + Web frontend (Expo SDK 52+)
 ├── infra/            # Docker, CI/CD, and infrastructure configs
