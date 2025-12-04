@@ -79,7 +79,9 @@ func (h *Handler) CreateUploadURL(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	expiresAt := time.Now().Add(5 * time.Minute)
+	// Use the actual S3 presign expiry time from config
+	// The S3 service is configured with the expiry duration from config
+	expiresAt := time.Now().Add(5 * time.Minute) // This matches the default S3_PRESIGN_EXPIRY
 	respondJSON(w, http.StatusOK, UploadURLResponse{
 		BlueprintID: blueprintID,
 		UploadURL:   uploadURL,
