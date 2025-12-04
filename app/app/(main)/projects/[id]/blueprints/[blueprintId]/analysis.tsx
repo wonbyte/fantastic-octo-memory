@@ -172,43 +172,134 @@ export default function AnalysisStatusScreen() {
         )}
 
         {job.status === 'completed' && job.result && (
-          <Card style={styles.resultsCard}>
-            <Text style={styles.resultsTitle}>Analysis Results</Text>
-            
-            {job.result.summary && (
-              <View style={styles.summarySection}>
-                <Text style={styles.summaryTitle}>Summary</Text>
-                <View style={styles.summaryGrid}>
-                  <View style={styles.summaryItem}>
-                    <Text style={styles.summaryValue}>
-                      {job.result.summary.total_rooms || 0}
-                    </Text>
-                    <Text style={styles.summaryLabel}>Rooms</Text>
-                  </View>
-                  <View style={styles.summaryItem}>
-                    <Text style={styles.summaryValue}>
-                      {job.result.summary.total_openings || 0}
-                    </Text>
-                    <Text style={styles.summaryLabel}>Openings</Text>
-                  </View>
-                  <View style={styles.summaryItem}>
-                    <Text style={styles.summaryValue}>
-                      {job.result.summary.total_fixtures || 0}
-                    </Text>
-                    <Text style={styles.summaryLabel}>Fixtures</Text>
-                  </View>
-                  {job.result.summary.total_area && (
+          <>
+            <Card style={styles.resultsCard}>
+              <Text style={styles.resultsTitle}>Analysis Results</Text>
+              
+              {job.result.summary && (
+                <View style={styles.summarySection}>
+                  <Text style={styles.summaryTitle}>Summary</Text>
+                  <View style={styles.summaryGrid}>
                     <View style={styles.summaryItem}>
                       <Text style={styles.summaryValue}>
-                        {job.result.summary.total_area.toFixed(0)}
+                        {job.result.summary.total_rooms || 0}
                       </Text>
-                      <Text style={styles.summaryLabel}>sq ft</Text>
+                      <Text style={styles.summaryLabel}>Rooms</Text>
                     </View>
-                  )}
+                    <View style={styles.summaryItem}>
+                      <Text style={styles.summaryValue}>
+                        {job.result.summary.total_openings || 0}
+                      </Text>
+                      <Text style={styles.summaryLabel}>Openings</Text>
+                    </View>
+                    <View style={styles.summaryItem}>
+                      <Text style={styles.summaryValue}>
+                        {job.result.summary.total_fixtures || 0}
+                      </Text>
+                      <Text style={styles.summaryLabel}>Fixtures</Text>
+                    </View>
+                    {job.result.summary.total_area && (
+                      <View style={styles.summaryItem}>
+                        <Text style={styles.summaryValue}>
+                          {job.result.summary.total_area.toFixed(0)}
+                        </Text>
+                        <Text style={styles.summaryLabel}>sq ft</Text>
+                      </View>
+                    )}
+                  </View>
                 </View>
-              </View>
-            )}
-          </Card>
+              )}
+
+              {/* Rooms Section */}
+              {job.result.rooms && job.result.rooms.length > 0 && (
+                <View style={styles.detailSection}>
+                  <Text style={styles.detailTitle}>Rooms</Text>
+                  {job.result.rooms.map((room, index) => (
+                    <View key={index} style={styles.detailItem}>
+                      <Text style={styles.detailName}>
+                        {room.name}
+                        {room.room_type && (
+                          <Text style={styles.detailType}> ({room.room_type})</Text>
+                        )}
+                      </Text>
+                      <Text style={styles.detailInfo}>
+                        {room.dimensions} • {room.area.toFixed(0)} sq ft
+                      </Text>
+                    </View>
+                  ))}
+                </View>
+              )}
+
+              {/* Openings Section */}
+              {job.result.openings && job.result.openings.length > 0 && (
+                <View style={styles.detailSection}>
+                  <Text style={styles.detailTitle}>Openings (Doors & Windows)</Text>
+                  {job.result.openings.map((opening, index) => (
+                    <View key={index} style={styles.detailItem}>
+                      <Text style={styles.detailName}>
+                        {opening.opening_type}
+                      </Text>
+                      <Text style={styles.detailInfo}>
+                        {opening.count} × {opening.size}
+                        {opening.details && ` • ${opening.details}`}
+                      </Text>
+                    </View>
+                  ))}
+                </View>
+              )}
+
+              {/* Fixtures Section */}
+              {job.result.fixtures && job.result.fixtures.length > 0 && (
+                <View style={styles.detailSection}>
+                  <Text style={styles.detailTitle}>Fixtures</Text>
+                  {job.result.fixtures.map((fixture, index) => (
+                    <View key={index} style={styles.detailItem}>
+                      <Text style={styles.detailName}>
+                        {fixture.fixture_type}
+                        {fixture.category && (
+                          <Text style={styles.detailType}> ({fixture.category})</Text>
+                        )}
+                      </Text>
+                      <Text style={styles.detailInfo}>
+                        Qty: {fixture.count}
+                        {fixture.details && ` • ${fixture.details}`}
+                      </Text>
+                    </View>
+                  ))}
+                </View>
+              )}
+
+              {/* Materials Section */}
+              {job.result.materials && job.result.materials.length > 0 && (
+                <View style={styles.detailSection}>
+                  <Text style={styles.detailTitle}>Materials</Text>
+                  {job.result.materials.map((material, index) => (
+                    <View key={index} style={styles.detailItem}>
+                      <Text style={styles.detailName}>
+                        {material.material_name}
+                      </Text>
+                      <Text style={styles.detailInfo}>
+                        {material.quantity} {material.unit}
+                        {material.specifications && ` • ${material.specifications}`}
+                      </Text>
+                    </View>
+                  ))}
+                </View>
+              )}
+            </Card>
+
+            {/* Generate Bid Button */}
+            <View style={styles.bidSection}>
+              <Button
+                title="Generate Bid"
+                onPress={() => {
+                  // Navigate to bid generation
+                  router.push(`/projects/${job.blueprint_id}/generate-bid`);
+                }}
+                style={styles.bidButton}
+              />
+            </View>
+          </>
         )}
 
         <View style={styles.actionSection}>
@@ -378,5 +469,44 @@ const styles = StyleSheet.create({
   },
   backButton: {
     marginTop: 8,
+  },
+  detailSection: {
+    marginTop: 24,
+    paddingTop: 16,
+    borderTopWidth: 1,
+    borderTopColor: COLORS.border,
+  },
+  detailTitle: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: COLORS.text.primary,
+    marginBottom: 12,
+  },
+  detailItem: {
+    paddingVertical: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: COLORS.background.secondary,
+  },
+  detailName: {
+    fontSize: 16,
+    fontWeight: '500',
+    color: COLORS.text.primary,
+    marginBottom: 4,
+  },
+  detailType: {
+    fontSize: 14,
+    fontWeight: '400',
+    color: COLORS.text.secondary,
+  },
+  detailInfo: {
+    fontSize: 14,
+    color: COLORS.text.secondary,
+  },
+  bidSection: {
+    marginTop: 16,
+    marginBottom: 8,
+  },
+  bidButton: {
+    backgroundColor: COLORS.success,
   },
 });
