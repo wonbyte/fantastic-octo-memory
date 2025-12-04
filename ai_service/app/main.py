@@ -5,6 +5,7 @@ import uuid
 from contextlib import asynccontextmanager
 
 import sentry_sdk
+import structlog
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from starlette.middleware.base import BaseHTTPMiddleware
@@ -27,7 +28,6 @@ class CorrelationIDMiddleware(BaseHTTPMiddleware):
         correlation_id = request.headers.get("X-Correlation-ID", str(uuid.uuid4()))
         
         # Add to structlog context
-        import structlog
         structlog.contextvars.clear_contextvars()
         structlog.contextvars.bind_contextvars(correlation_id=correlation_id)
         

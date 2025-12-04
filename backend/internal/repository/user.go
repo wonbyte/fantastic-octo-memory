@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"errors"
+	"strings"
 
 	"github.com/google/uuid"
 	"github.com/wonbyte/fantastic-octo-memory/backend/internal/models"
@@ -40,9 +41,9 @@ func (r *UserRepository) CreateUser(ctx context.Context, user *models.User) erro
 	)
 
 	if err != nil {
-		// Check for unique constraint violation on email
-		if err.Error() == "ERROR: duplicate key value violates unique constraint \"users_email_key\" (SQLSTATE 23505)" ||
-			err.Error() == "ERROR: duplicate key value violates unique constraint \"idx_users_email\" (SQLSTATE 23505)" {
+		// Check for unique constraint violation on email using pgx error codes
+		// PostgreSQL error code 23505 is unique_violation
+		if strings.Contains(err.Error(), "23505") {
 			return ErrEmailAlreadyExists
 		}
 		return err
