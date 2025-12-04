@@ -1,5 +1,8 @@
 FROM node:22-alpine
 
+# Update npm to latest version
+RUN npm install -g npm@11.6.4
+
 WORKDIR /app
 
 # Copy package files
