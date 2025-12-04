@@ -43,17 +43,28 @@ const (
 	UploadStatusFailed   UploadStatus = "failed"
 )
 
+type AnalysisStatus string
+
+const (
+	AnalysisStatusNotStarted AnalysisStatus = "not_started"
+	AnalysisStatusQueued     AnalysisStatus = "queued"
+	AnalysisStatusProcessing AnalysisStatus = "processing"
+	AnalysisStatusCompleted  AnalysisStatus = "completed"
+	AnalysisStatusFailed     AnalysisStatus = "failed"
+)
+
 type Blueprint struct {
-	ID           uuid.UUID    `json:"id"`
-	ProjectID    uuid.UUID    `json:"project_id"`
-	Filename     string       `json:"filename"`
-	S3Key        string       `json:"s3_key"`
-	FileSize     *int64       `json:"file_size"`
-	MimeType     *string      `json:"mime_type"`
-	UploadStatus UploadStatus `json:"upload_status"`
-	AnalysisData *string      `json:"analysis_data"` // JSONB stored as string
-	CreatedAt    time.Time    `json:"created_at"`
-	UpdatedAt    time.Time    `json:"updated_at"`
+	ID             uuid.UUID      `json:"id"`
+	ProjectID      uuid.UUID      `json:"project_id"`
+	Filename       string         `json:"filename"`
+	S3Key          string         `json:"s3_key"`
+	FileSize       *int64         `json:"file_size"`
+	MimeType       *string        `json:"mime_type"`
+	UploadStatus   UploadStatus   `json:"upload_status"`
+	AnalysisStatus AnalysisStatus `json:"analysis_status"`
+	AnalysisData   *string        `json:"analysis_data"` // JSONB stored as string
+	CreatedAt      time.Time      `json:"created_at"`
+	UpdatedAt      time.Time      `json:"updated_at"`
 }
 
 type JobType string

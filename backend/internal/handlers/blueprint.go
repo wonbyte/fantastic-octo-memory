@@ -58,13 +58,14 @@ func (h *Handler) CreateUploadURL(w http.ResponseWriter, r *http.Request) {
 	s3Key := fmt.Sprintf("projects/%s/blueprints/%s/%s", project.ID, blueprintID, req.Filename)
 
 	blueprint := &models.Blueprint{
-		ID:           blueprintID,
-		ProjectID:    projectID,
-		Filename:     req.Filename,
-		S3Key:        s3Key,
-		UploadStatus: models.UploadStatusPending,
-		CreatedAt:    time.Now(),
-		UpdatedAt:    time.Now(),
+		ID:             blueprintID,
+		ProjectID:      projectID,
+		Filename:       req.Filename,
+		S3Key:          s3Key,
+		UploadStatus:   models.UploadStatusPending,
+		AnalysisStatus: models.AnalysisStatusNotStarted,
+		CreatedAt:      time.Now(),
+		UpdatedAt:      time.Now(),
 	}
 
 	if err := h.blueprintRepo.Create(r.Context(), blueprint); err != nil {

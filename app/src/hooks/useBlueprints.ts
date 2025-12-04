@@ -50,3 +50,19 @@ export const useTriggerAnalysis = () => {
     },
   });
 };
+
+export const useBlueprintAnalysis = (blueprintId: string, enabled: boolean = true) => {
+  return useQuery({
+    queryKey: ['blueprints', 'analysis', blueprintId],
+    queryFn: () => blueprintsApi.getAnalysis(blueprintId),
+    enabled: !!blueprintId && enabled,
+  });
+};
+
+export const useBlueprintTakeoffSummary = (blueprintId: string, enabled: boolean = true) => {
+  return useQuery({
+    queryKey: ['blueprints', 'takeoff-summary', blueprintId],
+    queryFn: () => blueprintsApi.getTakeoffSummary(blueprintId),
+    enabled: !!blueprintId && enabled,
+  });
+};

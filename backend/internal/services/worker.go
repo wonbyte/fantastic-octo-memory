@@ -98,7 +98,14 @@ func (w *Worker) processJob(ctx context.Context, job *models.Job) error {
 	// Get blueprint
 	blueprint, err := w.blueprintRepo.GetByID(ctx, job.BlueprintID)
 	if err != nil {
-		return w.failJob(ctx, job, fmt.Sprintf("failed to get blueprint: %v", err))
+		return w.failJob(ctx, job, blueprint, fmt.Sprintf("failed to get blueprint: %v", err))
+	}
+
+	// Update blueprint analysis status to processing
+	blueprint.AnalysisStatus = models.AnalysisStatusProcessing
+	blueprint.UpdatedAt = time.Now()
+	if err := w.blueprintRepo.Update(ctx, blueprint); err != nil {
+		slog.Error("Failed to update blueprint status to processing", "error", err)
 	}
 
 	// Call AI service
@@ -116,23 +123,32 @@ func (w *Worker) processJob(ctx context.Context, job *models.Job) error {
 			} else {
 				slog.Info("Job requeued for retry", "job_id", job.ID, "retry_count", job.RetryCount)
 			}
+			
+			// Revert blueprint status to queued for retry
+			blueprint.AnalysisStatus = models.AnalysisStatusQueued
+			blueprint.UpdatedAt = time.Now()
+			if updateErr := w.blueprintRepo.Update(ctx, blueprint); updateErr != nil {
+				slog.Error("Failed to revert blueprint status", "error", updateErr)
+			}
+			
 			return err
 		}
 
-		return w.failJob(ctx, job, fmt.Sprintf("AI service error: %v", err))
+		return w.failJob(ctx, job, blueprint, fmt.Sprintf("AI service error: %v", err))
 	}
 
 	// Normalize AI response and store in blueprint
 	var analysisResult models.AnalysisResult
 	if err := json.Unmarshal([]byte(resultData), &analysisResult); err != nil {
-		return w.failJob(ctx, job, fmt.Sprintf("failed to parse AI response: %v", err))
+		return w.failJob(ctx, job, blueprint, fmt.Sprintf("failed to parse AI response: %v", err))
 	}
 
 	// Store normalized analysis in blueprint (resultData is already a JSON string)
 	blueprint.AnalysisData = &resultData
+	blueprint.AnalysisStatus = models.AnalysisStatusCompleted
 	blueprint.UpdatedAt = time.Now()
 	if err := w.blueprintRepo.Update(ctx, blueprint); err != nil {
-		return w.failJob(ctx, job, fmt.Sprintf("failed to update blueprint with analysis: %v", err))
+		return w.failJob(ctx, job, blueprint, fmt.Sprintf("failed to update blueprint with analysis: %v", err))
 	}
 
 	// Update job to completed
@@ -150,7 +166,7 @@ func (w *Worker) processJob(ctx context.Context, job *models.Job) error {
 	return nil
 }
 
-func (w *Worker) failJob(ctx context.Context, job *models.Job, errorMsg string) error {
+func (w *Worker) failJob(ctx context.Context, job *models.Job, blueprint *models.Blueprint, errorMsg string) error {
 	completedAt := time.Now()
 	job.Status = models.JobStatusFailed
 	job.CompletedAt = &completedAt
@@ -159,6 +175,15 @@ func (w *Worker) failJob(ctx context.Context, job *models.Job, errorMsg string) 
 
 	if err := w.jobRepo.Update(ctx, job); err != nil {
 		return fmt.Errorf("failed to update job to failed: %w", err)
+	}
+
+	// Update blueprint analysis status to failed
+	if blueprint != nil {
+		blueprint.AnalysisStatus = models.AnalysisStatusFailed
+		blueprint.UpdatedAt = time.Now()
+		if err := w.blueprintRepo.Update(ctx, blueprint); err != nil {
+			slog.Error("Failed to update blueprint status to failed", "error", err)
+		}
 	}
 
 	slog.Error("Job failed", "job_id", job.ID, "error", errorMsg)
