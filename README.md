@@ -108,10 +108,10 @@ make test     # Run tests for all services
 | **Backend** | Go | 1.25+ |
 | **AI Service** | Python | 3.12+ |
 | **AI Framework** | FastAPI | 0.115+ |
-| **Frontend** | React | 18.3+ |
-| **Mobile** | React Native | 0.76+ |
-| **Mobile Framework** | Expo SDK | 52+ |
-| **Runtime** | Node.js | 22 LTS |
+| **Frontend** | React | 19.0+ |
+| **Mobile** | React Native | 0.82 |
+| **Mobile Framework** | Expo SDK | 54.0+ |
+| **Runtime** | Node.js | 24 LTS |
 | **Database** | PostgreSQL | 16+ |
 | **Cache** | Redis | 7.4+ |
 | **Container** | Docker | Latest |
