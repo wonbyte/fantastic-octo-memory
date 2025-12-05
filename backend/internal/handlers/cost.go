@@ -24,7 +24,16 @@ func (h *Handler) GetMaterials(w http.ResponseWriter, r *http.Request) {
 		regionPtr = &region
 	}
 
-	materials, err := h.materialRepo.GetAll(r.Context(), categoryPtr, regionPtr)
+	// Use cached service if available, otherwise fall back to repository
+	var materials []models.MaterialCost
+	var err error
+	
+	if h.costDataService != nil {
+		materials, err = h.costDataService.GetMaterials(r.Context(), categoryPtr, regionPtr)
+	} else {
+		materials, err = h.materialRepo.GetAll(r.Context(), categoryPtr, regionPtr)
+	}
+	
 	if err != nil {
 		slog.Error("Failed to get materials", "error", err)
 		respondError(w, http.StatusInternalServerError, "Failed to get materials")
@@ -47,7 +56,16 @@ func (h *Handler) GetLaborRates(w http.ResponseWriter, r *http.Request) {
 		regionPtr = &region
 	}
 
-	rates, err := h.laborRateRepo.GetAll(r.Context(), tradePtr, regionPtr)
+	// Use cached service if available, otherwise fall back to repository
+	var rates []models.LaborRate
+	var err error
+	
+	if h.costDataService != nil {
+		rates, err = h.costDataService.GetLaborRates(r.Context(), tradePtr, regionPtr)
+	} else {
+		rates, err = h.laborRateRepo.GetAll(r.Context(), tradePtr, regionPtr)
+	}
+	
 	if err != nil {
 		slog.Error("Failed to get labor rates", "error", err)
 		respondError(w, http.StatusInternalServerError, "Failed to get labor rates")
