@@ -68,6 +68,8 @@ func (s *CachedCostIntegrationService) GetMaterials(ctx context.Context, categor
 			if err := s.cache.Set(ctx, cacheKey, data, s.materialsCacheTTL); err != nil {
 				slog.Warn("Failed to cache materials", "error", err)
 			}
+		} else {
+			slog.Warn("Failed to marshal materials for caching", "error", err)
 		}
 	}
 	
@@ -103,6 +105,8 @@ func (s *CachedCostIntegrationService) GetLaborRates(ctx context.Context, trade,
 			if err := s.cache.Set(ctx, cacheKey, data, s.laborRatesCacheTTL); err != nil {
 				slog.Warn("Failed to cache labor rates", "error", err)
 			}
+		} else {
+			slog.Warn("Failed to marshal labor rates for caching", "error", err)
 		}
 	}
 	
@@ -138,6 +142,8 @@ func (s *CachedCostIntegrationService) GetRegionalAdjustment(ctx context.Context
 			if err := s.cache.Set(ctx, cacheKey, data, s.regionalAdjustmentTTL); err != nil {
 				slog.Warn("Failed to cache regional adjustment", "error", err)
 			}
+		} else {
+			slog.Warn("Failed to marshal regional adjustment for caching", "error", err)
 		}
 	}
 	

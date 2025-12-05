@@ -5,6 +5,11 @@ import (
 	"testing"
 )
 
+// Helper function for string pointers
+func ptrStr(s string) *string {
+	return &s
+}
+
 func TestCachedCostIntegrationService_WithoutCache(t *testing.T) {
 	// Test that cached service works even without Redis
 	// Using nil cache should fall back to database
@@ -62,20 +67,20 @@ func TestCachedCostIntegrationService_CacheKeyGeneration(t *testing.T) {
 		},
 		{
 			name:     "category only",
-			category: strPtr("drywall"),
+			category: ptrStr("drywall"),
 			region:   nil,
 			expected: "cost:materials:category:drywall",
 		},
 		{
 			name:     "region only",
 			category: nil,
-			region:   strPtr("texas"),
+			region:   ptrStr("texas"),
 			expected: "cost:materials:region:texas",
 		},
 		{
 			name:     "both filters",
-			category: strPtr("paint"),
-			region:   strPtr("florida"),
+			category: ptrStr("paint"),
+			region:   ptrStr("florida"),
 			expected: "cost:materials:category:paint:region:florida",
 		},
 	}
