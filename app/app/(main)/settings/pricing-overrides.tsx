@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
 import { View, Text, ScrollView, TextInput, TouchableOpacity, Alert, ActivityIndicator } from 'react-native';
-import { useRouter } from 'expo-router';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { api } from '../../../src/api/client';
+import type { AxiosError } from 'axios';
 
 interface PricingOverride {
   id: string;
@@ -15,8 +15,19 @@ interface PricingOverride {
   updated_at: string;
 }
 
+interface NewOverrideData {
+  override_type: string;
+  item_key: string;
+  override_value: string;
+  is_percentage: boolean;
+  notes: string;
+}
+
+interface ErrorResponse {
+  error?: string;
+}
+
 export default function PricingOverridesScreen() {
-  const router = useRouter();
   const queryClient = useQueryClient();
   
   const [showAddForm, setShowAddForm] = useState(false);
@@ -39,7 +50,7 @@ export default function PricingOverridesScreen() {
 
   // Create mutation
   const createMutation = useMutation({
-    mutationFn: async (data: any) => {
+    mutationFn: async (data: NewOverrideData) => {
       const response = await api.post('/api/company/pricing-overrides', {
         ...data,
         override_value: parseFloat(data.override_value),
@@ -58,7 +69,7 @@ export default function PricingOverridesScreen() {
       });
       Alert.alert('Success', 'Pricing override created successfully');
     },
-    onError: (error: any) => {
+    onError: (error: AxiosError<ErrorResponse>) => {
       Alert.alert('Error', error.response?.data?.error || 'Failed to create override');
     },
   });
@@ -72,7 +83,7 @@ export default function PricingOverridesScreen() {
       queryClient.invalidateQueries({ queryKey: ['pricingOverrides'] });
       Alert.alert('Success', 'Pricing override deleted');
     },
-    onError: (error: any) => {
+    onError: (error: AxiosError<ErrorResponse>) => {
       Alert.alert('Error', error.response?.data?.error || 'Failed to delete override');
     },
   });
