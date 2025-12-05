@@ -68,6 +68,10 @@ func main() {
 	jobRepo := repository.NewJobRepository(db)
 	bidRepo := repository.NewBidRepository(db)
 	userRepo := repository.NewUserRepository(db)
+	materialRepo := repository.NewMaterialRepository(db.Pool)
+	laborRateRepo := repository.NewLaborRateRepository(db.Pool)
+	regionalRepo := repository.NewRegionalAdjustmentRepository(db.Pool)
+	companyOverrideRepo := repository.NewCompanyPricingOverrideRepository(db.Pool)
 
 	// Initialize services
 	s3Service, err := services.NewS3Service(cfg)
@@ -87,6 +91,9 @@ func main() {
 	// Initialize auth service
 	authService := services.NewAuthService(cfg.Auth.JWTSecret, cfg.Auth.TokenExpiry)
 
+	// Initialize cost integration service
+	costIntegrationService := services.NewCostIntegrationService(materialRepo, laborRateRepo, regionalRepo)
+
 	// Initialize worker
 	worker := services.NewWorker(jobRepo, blueprintRepo, aiService, cfg)
 	ctx, cancel := context.WithCancel(context.Background())
@@ -97,7 +104,22 @@ func main() {
 	}()
 
 	// Initialize handlers
-	handler := handlers.NewHandler(db, projectRepo, blueprintRepo, jobRepo, bidRepo, userRepo, s3Service, aiService, authService)
+	handler := handlers.NewHandler(
+		db,
+		projectRepo,
+		blueprintRepo,
+		jobRepo,
+		bidRepo,
+		userRepo,
+		materialRepo,
+		laborRateRepo,
+		regionalRepo,
+		companyOverrideRepo,
+		s3Service,
+		aiService,
+		authService,
+		costIntegrationService,
+	)
 
 	// Setup router
 	r := chi.NewRouter()
@@ -141,6 +163,20 @@ func main() {
 		r.Get("/projects/{id}/bids", handler.GetProjectBids)
 		r.Get("/bids/{id}", handler.GetBid)
 		r.Get("/bids/{id}/pdf", handler.GetBidPDF)
+
+		// Cost database routes
+		r.Get("/api/materials", handler.GetMaterials)
+		r.Get("/api/labor-rates", handler.GetLaborRates)
+		r.Get("/api/regional-adjustments", handler.GetRegionalAdjustments)
+		
+		// Company pricing override routes
+		r.Get("/api/company/pricing-overrides", handler.GetCompanyPricingOverrides)
+		r.Post("/api/company/pricing-overrides", handler.CreateCompanyPricingOverride)
+		r.Put("/api/company/pricing-overrides/{id}", handler.UpdateCompanyPricingOverride)
+		r.Delete("/api/company/pricing-overrides/{id}", handler.DeleteCompanyPricingOverride)
+		
+		// Admin route for syncing cost data (should add admin check in production)
+		r.Post("/api/admin/sync-cost-data", handler.SyncCostData)
 	})
 
 	// Create HTTP server
