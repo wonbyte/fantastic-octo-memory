@@ -98,7 +98,7 @@ func (w *Worker) processJob(ctx context.Context, job *models.Job) error {
 	// Get blueprint
 	blueprint, err := w.blueprintRepo.GetByID(ctx, job.BlueprintID)
 	if err != nil {
-		return w.failJob(ctx, job, blueprint, fmt.Sprintf("failed to get blueprint: %v", err))
+		return w.failJob(ctx, job, nil, fmt.Sprintf("failed to get blueprint: %v", err))
 	}
 
 	// Update blueprint analysis status to processing
