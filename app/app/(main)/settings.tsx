@@ -1,6 +1,7 @@
 import React from 'react';
 import { View, Text, ScrollView, TouchableOpacity } from 'react-native';
 import { useRouter } from 'expo-router';
+import type { Href } from 'expo-router';
 
 export default function SettingsScreen() {
   const router = useRouter();
@@ -9,19 +10,19 @@ export default function SettingsScreen() {
     {
       title: 'Pricing Overrides',
       description: 'Manage custom material and labor pricing',
-      route: '/settings/pricing-overrides',
+      route: '/settings/pricing-overrides' as Href,
       icon: '💰',
     },
     {
       title: 'Regional Settings',
       description: 'View regional pricing adjustments',
-      route: '/settings/regional-adjustments',
+      route: '/settings/regional-adjustments' as Href,
       icon: '🌍',
     },
     {
       title: 'Cost Database Sync',
       description: 'Sync pricing data from external providers',
-      route: '/settings/sync-costs',
+      route: '/settings/sync-costs' as Href,
       icon: '🔄',
     },
   ];
@@ -38,7 +39,7 @@ export default function SettingsScreen() {
           {settingsOptions.map((option, index) => (
             <TouchableOpacity
               key={index}
-              onPress={() => router.push(option.route as any)}
+              onPress={() => router.push(option.route)}
               className="bg-white rounded-lg p-4 shadow-sm border border-gray-200"
             >
               <View className="flex-row items-center">
