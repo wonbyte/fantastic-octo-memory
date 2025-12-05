@@ -153,6 +153,8 @@ func (h *Handler) GenerateBid(w http.ResponseWriter, r *http.Request) {
 		FinalPrice:       &aiResponse.TotalPrice,
 		Status:           models.BidStatusDraft,
 		BidData:          &bidResponseJSON,
+		Version:          1,
+		IsLatest:         true,
 		CreatedAt:        now,
 		UpdatedAt:        now,
 	}

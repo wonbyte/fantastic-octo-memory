@@ -12,28 +12,32 @@ import (
 )
 
 type Handler struct {
-	db                     *repository.Database
-	projectRepo            *repository.ProjectRepository
-	blueprintRepo          *repository.BlueprintRepository
-	jobRepo                *repository.JobRepository
-	bidRepo                *repository.BidRepository
-	userRepo               *repository.UserRepository
-	materialRepo           *repository.MaterialRepository
-	laborRateRepo          *repository.LaborRateRepository
-	regionalRepo           *repository.RegionalAdjustmentRepository
-	companyOverrideRepo    *repository.CompanyPricingOverrideRepository
-	s3Service              *services.S3Service
-	aiService              *services.AIService
-	authService            *services.AuthService
-	costIntegrationService *services.CostIntegrationService
+	db                       *repository.Database
+	projectRepo              *repository.ProjectRepository
+	blueprintRepo            *repository.BlueprintRepository
+	blueprintRevisionRepo    *repository.BlueprintRevisionRepository
+	jobRepo                  *repository.JobRepository
+	bidRepo                  *repository.BidRepository
+	bidRevisionRepo          *repository.BidRevisionRepository
+	userRepo                 *repository.UserRepository
+	materialRepo             *repository.MaterialRepository
+	laborRateRepo            *repository.LaborRateRepository
+	regionalRepo             *repository.RegionalAdjustmentRepository
+	companyOverrideRepo      *repository.CompanyPricingOverrideRepository
+	s3Service                *services.S3Service
+	aiService                *services.AIService
+	authService              *services.AuthService
+	costIntegrationService   *services.CostIntegrationService
 }
 
 func NewHandler(
 	db *repository.Database,
 	projectRepo *repository.ProjectRepository,
 	blueprintRepo *repository.BlueprintRepository,
+	blueprintRevisionRepo *repository.BlueprintRevisionRepository,
 	jobRepo *repository.JobRepository,
 	bidRepo *repository.BidRepository,
+	bidRevisionRepo *repository.BidRevisionRepository,
 	userRepo *repository.UserRepository,
 	materialRepo *repository.MaterialRepository,
 	laborRateRepo *repository.LaborRateRepository,
@@ -45,20 +49,22 @@ func NewHandler(
 	costIntegrationService *services.CostIntegrationService,
 ) *Handler {
 	return &Handler{
-		db:                     db,
-		projectRepo:            projectRepo,
-		blueprintRepo:          blueprintRepo,
-		jobRepo:                jobRepo,
-		bidRepo:                bidRepo,
-		userRepo:               userRepo,
-		materialRepo:           materialRepo,
-		laborRateRepo:          laborRateRepo,
-		regionalRepo:           regionalRepo,
-		companyOverrideRepo:    companyOverrideRepo,
-		s3Service:              s3Service,
-		aiService:              aiService,
-		authService:            authService,
-		costIntegrationService: costIntegrationService,
+		db:                       db,
+		projectRepo:              projectRepo,
+		blueprintRepo:            blueprintRepo,
+		blueprintRevisionRepo:    blueprintRevisionRepo,
+		jobRepo:                  jobRepo,
+		bidRepo:                  bidRepo,
+		bidRevisionRepo:          bidRevisionRepo,
+		userRepo:                 userRepo,
+		materialRepo:             materialRepo,
+		laborRateRepo:            laborRateRepo,
+		regionalRepo:             regionalRepo,
+		companyOverrideRepo:      companyOverrideRepo,
+		s3Service:                s3Service,
+		aiService:                aiService,
+		authService:              authService,
+		costIntegrationService:   costIntegrationService,
 	}
 }
 

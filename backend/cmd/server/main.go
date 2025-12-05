@@ -65,8 +65,10 @@ func main() {
 	// Initialize repositories
 	projectRepo := repository.NewProjectRepository(db)
 	blueprintRepo := repository.NewBlueprintRepository(db)
+	blueprintRevisionRepo := repository.NewBlueprintRevisionRepository(db)
 	jobRepo := repository.NewJobRepository(db)
 	bidRepo := repository.NewBidRepository(db)
+	bidRevisionRepo := repository.NewBidRevisionRepository(db)
 	userRepo := repository.NewUserRepository(db)
 	materialRepo := repository.NewMaterialRepository(db.Pool)
 	laborRateRepo := repository.NewLaborRateRepository(db.Pool)
@@ -108,8 +110,10 @@ func main() {
 		db,
 		projectRepo,
 		blueprintRepo,
+		blueprintRevisionRepo,
 		jobRepo,
 		bidRepo,
+		bidRevisionRepo,
 		userRepo,
 		materialRepo,
 		laborRateRepo,
@@ -163,6 +167,16 @@ func main() {
 		r.Get("/projects/{id}/bids", handler.GetProjectBids)
 		r.Get("/bids/{id}", handler.GetBid)
 		r.Get("/bids/{id}/pdf", handler.GetBidPDF)
+		
+		// Blueprint revision routes
+		r.Get("/blueprints/{id}/revisions", handler.GetBlueprintRevisions)
+		r.Post("/blueprints/{id}/revisions", handler.CreateBlueprintRevision)
+		r.Get("/blueprints/{id}/compare", handler.CompareBlueprintRevisions)
+		
+		// Bid revision routes
+		r.Get("/bids/{id}/revisions", handler.GetBidRevisions)
+		r.Post("/bids/{id}/revisions", handler.CreateBidRevision)
+		r.Get("/bids/{id}/compare", handler.CompareBidRevisions)
 
 		// Cost database routes
 		r.Get("/api/materials", handler.GetMaterials)
