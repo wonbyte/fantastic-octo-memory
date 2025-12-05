@@ -57,6 +57,9 @@ export interface Blueprint {
   analysis_status: BlueprintAnalysisStatus;
   s3_key?: string;
   thumbnail_url?: string;
+  version: number;
+  parent_blueprint_id?: string;
+  is_latest: boolean;
   created_at: string;
   updated_at: string;
 }
@@ -200,6 +203,9 @@ export interface Bid {
   bid_data?: string; // JSONB stored as string
   pdf_url?: string;
   pdf_s3_key?: string;
+  version: number;
+  parent_bid_id?: string;
+  is_latest: boolean;
   created_at: string;
   updated_at: string;
 }
@@ -255,4 +261,80 @@ export interface PricingSummary {
   markup_amount: number;
   total_price: number;
   costs_by_trade: Record<string, number>;
+}
+
+// Revision Types
+export type ChangeType = 'added' | 'removed' | 'modified';
+
+export interface BlueprintRevision {
+  id: string;
+  blueprint_id: string;
+  version: number;
+  filename: string;
+  s3_key: string;
+  file_size?: number;
+  mime_type?: string;
+  analysis_data?: string;
+  changes_summary?: string;
+  created_by?: string;
+  created_at: string;
+}
+
+export interface BidRevision {
+  id: string;
+  bid_id: string;
+  version: number;
+  name?: string;
+  total_cost?: number;
+  labor_cost?: number;
+  material_cost?: number;
+  markup_percentage?: number;
+  final_price?: number;
+  status: BidStatus;
+  bid_data?: string;
+  changes_summary?: string;
+  created_by?: string;
+  created_at: string;
+}
+
+export interface BlueprintChange {
+  change_type: ChangeType;
+  category: string; // room, opening, fixture, measurement, material
+  description: string;
+  old_value?: unknown;
+  new_value?: unknown;
+  impact?: string; // High, Medium, Low
+}
+
+export interface BidChange {
+  change_type: ChangeType;
+  category: string; // cost, quantity, scope, timeline, terms, line_item
+  trade?: string;
+  description: string;
+  old_value?: unknown;
+  new_value?: unknown;
+  impact?: string; // High, Medium, Low
+}
+
+export interface ComparisonSummary {
+  total_changes: number;
+  added_count: number;
+  removed_count: number;
+  modified_count: number;
+  high_impact_count: number;
+  changes_by_category: Record<string, number>;
+}
+
+export interface BlueprintComparison {
+  from_version: number;
+  to_version: number;
+  changes: BlueprintChange[];
+  summary: ComparisonSummary;
+}
+
+export interface BidComparison {
+  from_version: number;
+  to_version: number;
+  changes: BidChange[];
+  summary: ComparisonSummary;
 }
