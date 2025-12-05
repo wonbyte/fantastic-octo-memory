@@ -7,9 +7,25 @@ import (
 	"net/http"
 
 	"github.com/wonbyte/fantastic-octo-memory/backend/internal/middleware"
+	"github.com/wonbyte/fantastic-octo-memory/backend/internal/models"
 	"github.com/wonbyte/fantastic-octo-memory/backend/internal/repository"
 	"github.com/wonbyte/fantastic-octo-memory/backend/internal/services"
 )
+
+// CostIntegrationServiceInterface defines the interface for cost integration service
+type CostIntegrationServiceInterface interface {
+	SyncMaterials(ctx context.Context, providerName, region string) error
+	SyncLaborRates(ctx context.Context, providerName, region string) error
+	SyncRegionalAdjustment(ctx context.Context, providerName, region string) error
+	SyncAll(ctx context.Context, region string) error
+}
+
+// CostDataServiceInterface defines the interface for cost data retrieval (with or without cache)
+type CostDataServiceInterface interface {
+	GetMaterials(ctx context.Context, category, region *string) ([]models.MaterialCost, error)
+	GetLaborRates(ctx context.Context, trade, region *string) ([]models.LaborRate, error)
+	GetRegionalAdjustment(ctx context.Context, region string) (*models.RegionalAdjustment, error)
+}
 
 type Handler struct {
 	db                       *repository.Database
@@ -27,7 +43,8 @@ type Handler struct {
 	s3Service                *services.S3Service
 	aiService                *services.AIService
 	authService              *services.AuthService
-	costIntegrationService   *services.CostIntegrationService
+	costIntegrationService   CostIntegrationServiceInterface
+	costDataService          CostDataServiceInterface
 }
 
 func NewHandler(
@@ -46,8 +63,14 @@ func NewHandler(
 	s3Service *services.S3Service,
 	aiService *services.AIService,
 	authService *services.AuthService,
-	costIntegrationService *services.CostIntegrationService,
+	costIntegrationService CostIntegrationServiceInterface,
 ) *Handler {
+	// Use costIntegrationService as costDataService if it supports the interface
+	var costDataService CostDataServiceInterface
+	if cds, ok := costIntegrationService.(CostDataServiceInterface); ok {
+		costDataService = cds
+	}
+	
 	return &Handler{
 		db:                       db,
 		projectRepo:              projectRepo,
@@ -65,6 +88,7 @@ func NewHandler(
 		aiService:                aiService,
 		authService:              authService,
 		costIntegrationService:   costIntegrationService,
+		costDataService:          costDataService,
 	}
 }
 

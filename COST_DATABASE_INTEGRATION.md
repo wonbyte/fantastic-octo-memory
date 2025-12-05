@@ -387,19 +387,72 @@ To rollback:
 migrate -path migrations -database "$DATABASE_URL" down 1
 ```
 
+## Caching Implementation
+
+### Redis Caching
+
+The cost database integration includes Redis caching to improve performance and reduce database load. The `CachedCostIntegrationService` wraps the base service with caching capabilities.
+
+#### Cache Configuration
+
+- **Materials**: Cached for 24 hours
+- **Labor Rates**: Cached for 24 hours
+- **Regional Adjustments**: Cached for 7 days
+
+#### Cache Keys
+
+The system uses structured cache keys for easy invalidation:
+
+```
+cost:materials[:category:<name>][:region:<region>]
+cost:labor_rates[:trade:<trade>][:region:<region>]
+cost:regional_adjustment:region:<region>
+```
+
+#### Cache Invalidation
+
+Cache is automatically invalidated when:
+- External data is synced via `/api/admin/sync-cost-data`
+- Materials are updated in the database
+- Labor rates are updated in the database
+- Regional adjustments are updated
+
+Manual cache invalidation can be triggered by syncing data through the admin endpoint.
+
+#### Graceful Degradation
+
+If Redis is unavailable:
+- The system logs a warning and continues without caching
+- All requests fall back to direct database queries
+- No functionality is lost
+
+#### Monitoring Cache Performance
+
+Monitor these metrics:
+- Cache hit/miss ratio for cost data
+- Redis connection status
+- Average response times with and without cache
+- Cache memory usage
+
 ## Testing
 
 Run the tests:
 
 ```bash
+# Unit tests
 go test ./internal/services/... -v
+
+# Repository tests (requires database)
 go test ./internal/repository/... -v
+
+# Caching tests
+go test ./internal/services/ -v -run "TestCached|TestRedis"
 ```
 
 ## Future Enhancements
 
 1. **Real API Integration**: Replace mock providers with real API implementations
-2. **Caching**: Add Redis caching for frequently accessed pricing data
+2. ~~**Caching**: Add Redis caching for frequently accessed pricing data~~ ✅ **COMPLETED**
 3. **Historical Pricing**: Track price changes over time
 4. **Bulk Import**: Support CSV/Excel import for custom pricing
 5. **Price Alerts**: Notify users of significant price changes
@@ -408,6 +461,9 @@ go test ./internal/repository/... -v
 8. **Price Comparison**: Compare prices across providers
 9. **Custom Materials**: Allow users to add custom materials
 10. **Export**: Export pricing data to various formats
+11. **Admin UI**: Build admin interface for rate table management
+12. **Cache Warmup**: Pre-populate cache on application startup
+13. **Cache Metrics**: Add detailed cache performance monitoring
 
 ## Security Considerations
 

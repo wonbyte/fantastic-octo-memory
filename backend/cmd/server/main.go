@@ -93,8 +93,17 @@ func main() {
 	// Initialize auth service
 	authService := services.NewAuthService(cfg.Auth.JWTSecret, cfg.Auth.TokenExpiry)
 
-	// Initialize cost integration service
-	costIntegrationService := services.NewCostIntegrationService(materialRepo, laborRateRepo, regionalRepo)
+	// Initialize Redis client for caching
+	redisClient, err := services.NewRedisClient()
+	if err != nil {
+		slog.Warn("Failed to initialize Redis client, continuing without cache", "error", err)
+	}
+	if redisClient != nil {
+		defer redisClient.Close()
+	}
+
+	// Initialize cost integration service with caching
+	costIntegrationService := services.NewCachedCostIntegrationService(materialRepo, laborRateRepo, regionalRepo, redisClient)
 
 	// Initialize worker
 	worker := services.NewWorker(jobRepo, blueprintRepo, aiService, cfg)
