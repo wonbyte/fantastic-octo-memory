@@ -76,7 +76,10 @@ func (s *ComparisonService) compareRooms(from, to *models.AnalysisResult, compar
 			// Check for modifications
 			if fromRoom.Area != toRoom.Area || fromRoom.Dimensions != toRoom.Dimensions {
 				impact := "Medium"
-				if math.Abs(fromRoom.Area-toRoom.Area) > fromRoom.Area*0.2 { // >20% change
+				// Only check percentage if fromRoom.Area is not zero
+				if fromRoom.Area > 0 && math.Abs(fromRoom.Area-toRoom.Area) > fromRoom.Area*0.2 { // >20% change
+					impact = "High"
+				} else if fromRoom.Area == 0 && toRoom.Area > 0 {
 					impact = "High"
 				}
 				comparison.Changes = append(comparison.Changes, models.BlueprintChange{
@@ -246,7 +249,10 @@ func (s *ComparisonService) compareMeasurements(from, to *models.AnalysisResult,
 		if fromMeasurement, exists := fromMeasurements[key]; exists {
 			if fromMeasurement.Value != toMeasurement.Value {
 				impact := "Medium"
-				if math.Abs(fromMeasurement.Value-toMeasurement.Value) > fromMeasurement.Value*0.2 {
+				// Only check percentage if fromMeasurement.Value is not zero
+				if fromMeasurement.Value > 0 && math.Abs(fromMeasurement.Value-toMeasurement.Value) > fromMeasurement.Value*0.2 {
+					impact = "High"
+				} else if fromMeasurement.Value == 0 && toMeasurement.Value > 0 {
 					impact = "High"
 				}
 				comparison.Changes = append(comparison.Changes, models.BlueprintChange{
@@ -300,7 +306,10 @@ func (s *ComparisonService) compareMaterials(from, to *models.AnalysisResult, co
 		if fromMaterial, exists := fromMaterials[name]; exists {
 			if fromMaterial.Quantity != toMaterial.Quantity {
 				impact := "Medium"
-				if math.Abs(fromMaterial.Quantity-toMaterial.Quantity) > fromMaterial.Quantity*0.2 {
+				// Only check percentage if fromMaterial.Quantity is not zero
+				if fromMaterial.Quantity > 0 && math.Abs(fromMaterial.Quantity-toMaterial.Quantity) > fromMaterial.Quantity*0.2 {
+					impact = "High"
+				} else if fromMaterial.Quantity == 0 && toMaterial.Quantity > 0 {
 					impact = "High"
 				}
 				comparison.Changes = append(comparison.Changes, models.BlueprintChange{
@@ -395,11 +404,17 @@ func (s *ComparisonService) compareBidCosts(from, to *models.BidRevision, compar
 	if from.TotalCost != nil && to.TotalCost != nil && *from.TotalCost != *to.TotalCost {
 		impact := "High"
 		diff := *to.TotalCost - *from.TotalCost
-		percentChange := (diff / *from.TotalCost) * 100
+		var description string
+		if *from.TotalCost > 0 {
+			percentChange := (diff / *from.TotalCost) * 100
+			description = fmt.Sprintf("Total cost changed from $%.2f to $%.2f (%.2f%%)", *from.TotalCost, *to.TotalCost, percentChange)
+		} else {
+			description = fmt.Sprintf("Total cost changed from $%.2f to $%.2f", *from.TotalCost, *to.TotalCost)
+		}
 		comparison.Changes = append(comparison.Changes, models.BidChange{
 			ChangeType:  models.ChangeTypeModified,
 			Category:    "cost",
-			Description: fmt.Sprintf("Total cost changed from $%.2f to $%.2f (%.2f%%)", *from.TotalCost, *to.TotalCost, percentChange),
+			Description: description,
 			OldValue:    *from.TotalCost,
 			NewValue:    *to.TotalCost,
 			Impact:      &impact,
@@ -410,11 +425,17 @@ func (s *ComparisonService) compareBidCosts(from, to *models.BidRevision, compar
 	if from.LaborCost != nil && to.LaborCost != nil && *from.LaborCost != *to.LaborCost {
 		impact := "Medium"
 		diff := *to.LaborCost - *from.LaborCost
-		percentChange := (diff / *from.LaborCost) * 100
+		var description string
+		if *from.LaborCost > 0 {
+			percentChange := (diff / *from.LaborCost) * 100
+			description = fmt.Sprintf("Labor cost changed from $%.2f to $%.2f (%.2f%%)", *from.LaborCost, *to.LaborCost, percentChange)
+		} else {
+			description = fmt.Sprintf("Labor cost changed from $%.2f to $%.2f", *from.LaborCost, *to.LaborCost)
+		}
 		comparison.Changes = append(comparison.Changes, models.BidChange{
 			ChangeType:  models.ChangeTypeModified,
 			Category:    "cost",
-			Description: fmt.Sprintf("Labor cost changed from $%.2f to $%.2f (%.2f%%)", *from.LaborCost, *to.LaborCost, percentChange),
+			Description: description,
 			OldValue:    *from.LaborCost,
 			NewValue:    *to.LaborCost,
 			Impact:      &impact,
@@ -425,11 +446,17 @@ func (s *ComparisonService) compareBidCosts(from, to *models.BidRevision, compar
 	if from.MaterialCost != nil && to.MaterialCost != nil && *from.MaterialCost != *to.MaterialCost {
 		impact := "Medium"
 		diff := *to.MaterialCost - *from.MaterialCost
-		percentChange := (diff / *from.MaterialCost) * 100
+		var description string
+		if *from.MaterialCost > 0 {
+			percentChange := (diff / *from.MaterialCost) * 100
+			description = fmt.Sprintf("Material cost changed from $%.2f to $%.2f (%.2f%%)", *from.MaterialCost, *to.MaterialCost, percentChange)
+		} else {
+			description = fmt.Sprintf("Material cost changed from $%.2f to $%.2f", *from.MaterialCost, *to.MaterialCost)
+		}
 		comparison.Changes = append(comparison.Changes, models.BidChange{
 			ChangeType:  models.ChangeTypeModified,
 			Category:    "cost",
-			Description: fmt.Sprintf("Material cost changed from $%.2f to $%.2f (%.2f%%)", *from.MaterialCost, *to.MaterialCost, percentChange),
+			Description: description,
 			OldValue:    *from.MaterialCost,
 			NewValue:    *to.MaterialCost,
 			Impact:      &impact,
@@ -453,11 +480,17 @@ func (s *ComparisonService) compareBidCosts(from, to *models.BidRevision, compar
 	if from.FinalPrice != nil && to.FinalPrice != nil && *from.FinalPrice != *to.FinalPrice {
 		impact := "High"
 		diff := *to.FinalPrice - *from.FinalPrice
-		percentChange := (diff / *from.FinalPrice) * 100
+		var description string
+		if *from.FinalPrice > 0 {
+			percentChange := (diff / *from.FinalPrice) * 100
+			description = fmt.Sprintf("Final price changed from $%.2f to $%.2f (%.2f%%)", *from.FinalPrice, *to.FinalPrice, percentChange)
+		} else {
+			description = fmt.Sprintf("Final price changed from $%.2f to $%.2f", *from.FinalPrice, *to.FinalPrice)
+		}
 		comparison.Changes = append(comparison.Changes, models.BidChange{
 			ChangeType:  models.ChangeTypeModified,
 			Category:    "cost",
-			Description: fmt.Sprintf("Final price changed from $%.2f to $%.2f (%.2f%%)", *from.FinalPrice, *to.FinalPrice, percentChange),
+			Description: description,
 			OldValue:    *from.FinalPrice,
 			NewValue:    *to.FinalPrice,
 			Impact:      &impact,

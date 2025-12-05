@@ -328,7 +328,7 @@ func TestComparisonService_MaterialChanges(t *testing.T) {
 			t.Errorf("expected material category, got %s", change.Category)
 		}
 		if change.Impact == nil || *change.Impact != "High" {
-			t.Errorf("expected High impact for 50%% change")
+			t.Errorf("expected High impact for 50%% quantity change")
 		}
 	}
 }
