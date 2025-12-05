@@ -68,7 +68,7 @@ func (s *EnhancedPricingService) GetPricingConfig(ctx context.Context, userID *u
 
 	// Get regional adjustment factor
 	regionalFactor := 1.0
-	if region != nil {
+	if region != nil && s.regionalRepo != nil {
 		adjustment, err := s.regionalRepo.GetByRegion(ctx, *region)
 		if err == nil && adjustment != nil {
 			regionalFactor = adjustment.AdjustmentFactor
@@ -78,33 +78,43 @@ func (s *EnhancedPricingService) GetPricingConfig(ctx context.Context, userID *u
 	}
 
 	// Load materials from database
-	materials, err := s.materialRepo.GetAll(ctx, nil, region)
-	if err != nil {
-		slog.Error("Failed to load materials from database", "error", err)
-		// Fall back to default prices
-		config.MaterialPrices = s.defaultConfig.MaterialPrices
-	} else {
-		// Build material price map with regional adjustment
-		for _, m := range materials {
-			config.MaterialPrices[m.Category] = m.BasePrice * regionalFactor
+	if s.materialRepo != nil {
+		materials, err := s.materialRepo.GetAll(ctx, nil, region)
+		if err != nil {
+			slog.Error("Failed to load materials from database", "error", err)
+			// Fall back to default prices
+			config.MaterialPrices = s.defaultConfig.MaterialPrices
+		} else {
+			// Build material price map with regional adjustment
+			for _, m := range materials {
+				config.MaterialPrices[m.Category] = m.BasePrice * regionalFactor
+			}
 		}
+	} else {
+		// No repository, use defaults
+		config.MaterialPrices = s.defaultConfig.MaterialPrices
 	}
 
 	// Load labor rates from database
-	laborRates, err := s.laborRateRepo.GetAll(ctx, nil, region)
-	if err != nil {
-		slog.Error("Failed to load labor rates from database", "error", err)
-		// Fall back to default rates
-		config.LaborRates = s.defaultConfig.LaborRates
-	} else {
-		// Build labor rate map with regional adjustment
-		for _, lr := range laborRates {
-			config.LaborRates[lr.Trade] = lr.HourlyRate * regionalFactor
+	if s.laborRateRepo != nil {
+		laborRates, err := s.laborRateRepo.GetAll(ctx, nil, region)
+		if err != nil {
+			slog.Error("Failed to load labor rates from database", "error", err)
+			// Fall back to default rates
+			config.LaborRates = s.defaultConfig.LaborRates
+		} else {
+			// Build labor rate map with regional adjustment
+			for _, lr := range laborRates {
+				config.LaborRates[lr.Trade] = lr.HourlyRate * regionalFactor
+			}
 		}
+	} else {
+		// No repository, use defaults
+		config.LaborRates = s.defaultConfig.LaborRates
 	}
 
 	// Apply company-specific overrides if userID is provided
-	if userID != nil {
+	if userID != nil && s.companyOverrideRepo != nil {
 		overrides, err := s.companyOverrideRepo.GetByUserID(ctx, *userID)
 		if err != nil {
 			slog.Warn("Failed to load company overrides", "user_id", userID, "error", err)
