@@ -90,7 +90,7 @@ export const RevisionHistory: React.FC<RevisionHistoryProps> = ({
         onPress={() => handleVersionSelect(item.version)}
         disabled={!onCompare}
       >
-        <Card style={[styles.revisionCard, isSelected && styles.selectedCard]}>
+        <Card style={isSelected ? [styles.revisionCard, styles.selectedCard] : styles.revisionCard}>
           <View style={styles.revisionHeader}>
             <Text style={styles.versionText}>Version {item.version}</Text>
             <Text style={styles.dateText}>{formatDate(item.created_at)}</Text>
