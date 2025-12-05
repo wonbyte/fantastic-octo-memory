@@ -46,7 +46,10 @@ func NewRedisClient() (*RedisClient, error) {
 	defer cancel()
 
 	if err := client.Ping(ctx).Err(); err != nil {
-		slog.Warn("Redis connection failed, caching will be disabled", "error", err, "addr", addr)
+		slog.Warn("Redis connection failed, caching will be disabled", 
+			"error", err, 
+			"addr", addr,
+			"error_type", fmt.Sprintf("%T", err))
 		// Don't return error - allow app to run without cache
 		return &RedisClient{client: nil}, nil
 	}

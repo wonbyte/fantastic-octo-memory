@@ -69,6 +69,9 @@ func NewHandler(
 	var costDataService CostDataServiceInterface
 	if cds, ok := costIntegrationService.(CostDataServiceInterface); ok {
 		costDataService = cds
+	} else {
+		// Fallback to nil - handlers will use repositories directly
+		slog.Warn("CostIntegrationService does not implement CostDataServiceInterface, handlers will use direct repository access")
 	}
 	
 	return &Handler{

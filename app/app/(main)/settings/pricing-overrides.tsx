@@ -186,12 +186,16 @@ export default function PricingOverridesScreen() {
             <TouchableOpacity
               onPress={() => setNewOverride({ ...newOverride, is_percentage: !newOverride.is_percentage })}
               className="flex-row items-center mb-4"
+              accessible={true}
+              accessibilityLabel={newOverride.is_percentage ? "Percentage adjustment enabled" : "Percentage adjustment disabled"}
+              accessibilityRole="checkbox"
+              accessibilityState={{ checked: newOverride.is_percentage }}
             >
               <View className={`w-6 h-6 rounded border-2 mr-3 ${
                 newOverride.is_percentage ? 'bg-blue-600 border-blue-600' : 'bg-white border-gray-300'
               }`}>
                 {newOverride.is_percentage && (
-                  <Text className="text-white text-center">✓</Text>
+                  <Text className="text-white text-center" accessibilityLabel="checked">✓</Text>
                 )}
               </View>
               <Text className="text-gray-700">Is Percentage Adjustment</Text>
@@ -270,8 +274,11 @@ export default function PricingOverridesScreen() {
                     onPress={() => handleDelete(override.id)}
                     disabled={deleteMutation.isPending}
                     className="ml-4"
+                    accessible={true}
+                    accessibilityLabel="Delete pricing override"
+                    accessibilityRole="button"
                   >
-                    <Text className="text-red-600 text-lg">🗑️</Text>
+                    <Text className="text-red-600 text-lg" accessibilityLabel="Delete">🗑️</Text>
                   </TouchableOpacity>
                 </View>
                 <Text className="text-xs text-gray-400">
