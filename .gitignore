@@ -45,6 +45,7 @@ go.work
 go.work.sum
 coverage.txt
 coverage.html
+backend/server
 
 # Python
 __pycache__/
