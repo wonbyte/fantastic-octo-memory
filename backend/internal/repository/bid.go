@@ -20,7 +20,7 @@ func (r *BidRepository) GetByID(ctx context.Context, id uuid.UUID) (*models.Bid,
 	query := `
 		SELECT id, project_id, job_id, name, total_cost, labor_cost, material_cost, 
 		       markup_percentage, final_price, status, bid_data, pdf_url, pdf_s3_key, 
-		       created_at, updated_at
+		       version, parent_bid_id, is_latest, created_at, updated_at
 		FROM bids
 		WHERE id = $1
 	`
@@ -40,6 +40,9 @@ func (r *BidRepository) GetByID(ctx context.Context, id uuid.UUID) (*models.Bid,
 		&bid.BidData,
 		&bid.PDFURL,
 		&bid.PDFS3Key,
+		&bid.Version,
+		&bid.ParentBidID,
+		&bid.IsLatest,
 		&bid.CreatedAt,
 		&bid.UpdatedAt,
 	)
@@ -55,7 +58,7 @@ func (r *BidRepository) GetByProjectID(ctx context.Context, projectID uuid.UUID)
 	query := `
 		SELECT id, project_id, job_id, name, total_cost, labor_cost, material_cost, 
 		       markup_percentage, final_price, status, bid_data, pdf_url, pdf_s3_key, 
-		       created_at, updated_at
+		       version, parent_bid_id, is_latest, created_at, updated_at
 		FROM bids
 		WHERE project_id = $1
 		ORDER BY created_at DESC
@@ -84,6 +87,9 @@ func (r *BidRepository) GetByProjectID(ctx context.Context, projectID uuid.UUID)
 			&bid.BidData,
 			&bid.PDFURL,
 			&bid.PDFS3Key,
+			&bid.Version,
+			&bid.ParentBidID,
+			&bid.IsLatest,
 			&bid.CreatedAt,
 			&bid.UpdatedAt,
 		)
@@ -100,8 +106,8 @@ func (r *BidRepository) Create(ctx context.Context, bid *models.Bid) error {
 	query := `
 		INSERT INTO bids (id, project_id, job_id, name, total_cost, labor_cost, material_cost, 
 		                  markup_percentage, final_price, status, bid_data, pdf_url, pdf_s3_key, 
-		                  created_at, updated_at)
-		VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15)
+		                  version, parent_bid_id, is_latest, created_at, updated_at)
+		VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18)
 	`
 
 	_, err := r.db.Pool.Exec(ctx, query,
@@ -118,6 +124,9 @@ func (r *BidRepository) Create(ctx context.Context, bid *models.Bid) error {
 		bid.BidData,
 		bid.PDFURL,
 		bid.PDFS3Key,
+		bid.Version,
+		bid.ParentBidID,
+		bid.IsLatest,
 		bid.CreatedAt,
 		bid.UpdatedAt,
 	)
@@ -134,8 +143,9 @@ func (r *BidRepository) Update(ctx context.Context, bid *models.Bid) error {
 		UPDATE bids
 		SET name = $1, total_cost = $2, labor_cost = $3, material_cost = $4, 
 		    markup_percentage = $5, final_price = $6, status = $7, bid_data = $8, 
-		    pdf_url = $9, pdf_s3_key = $10, updated_at = $11
-		WHERE id = $12
+		    pdf_url = $9, pdf_s3_key = $10, version = $11, parent_bid_id = $12, 
+		    is_latest = $13, updated_at = $14
+		WHERE id = $15
 	`
 
 	_, err := r.db.Pool.Exec(ctx, query,
@@ -149,6 +159,9 @@ func (r *BidRepository) Update(ctx context.Context, bid *models.Bid) error {
 		bid.BidData,
 		bid.PDFURL,
 		bid.PDFS3Key,
+		bid.Version,
+		bid.ParentBidID,
+		bid.IsLatest,
 		bid.UpdatedAt,
 		bid.ID,
 	)

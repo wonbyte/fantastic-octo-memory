@@ -54,17 +54,20 @@ const (
 )
 
 type Blueprint struct {
-	ID             uuid.UUID      `json:"id"`
-	ProjectID      uuid.UUID      `json:"project_id"`
-	Filename       string         `json:"filename"`
-	S3Key          string         `json:"s3_key"`
-	FileSize       *int64         `json:"file_size"`
-	MimeType       *string        `json:"mime_type"`
-	UploadStatus   UploadStatus   `json:"upload_status"`
-	AnalysisStatus AnalysisStatus `json:"analysis_status"`
-	AnalysisData   *string        `json:"analysis_data"` // JSONB stored as string
-	CreatedAt      time.Time      `json:"created_at"`
-	UpdatedAt      time.Time      `json:"updated_at"`
+	ID                uuid.UUID      `json:"id"`
+	ProjectID         uuid.UUID      `json:"project_id"`
+	Filename          string         `json:"filename"`
+	S3Key             string         `json:"s3_key"`
+	FileSize          *int64         `json:"file_size"`
+	MimeType          *string        `json:"mime_type"`
+	UploadStatus      UploadStatus   `json:"upload_status"`
+	AnalysisStatus    AnalysisStatus `json:"analysis_status"`
+	AnalysisData      *string        `json:"analysis_data"` // JSONB stored as string
+	Version           int            `json:"version"`
+	ParentBlueprintID *uuid.UUID     `json:"parent_blueprint_id,omitempty"`
+	IsLatest          bool           `json:"is_latest"`
+	CreatedAt         time.Time      `json:"created_at"`
+	UpdatedAt         time.Time      `json:"updated_at"`
 }
 
 type JobType string
@@ -121,6 +124,9 @@ type Bid struct {
 	BidData          *string    `json:"bid_data"` // JSONB stored as string
 	PDFURL           *string    `json:"pdf_url"`
 	PDFS3Key         *string    `json:"pdf_s3_key"`
+	Version          int        `json:"version"`
+	ParentBidID      *uuid.UUID `json:"parent_bid_id,omitempty"`
+	IsLatest         bool       `json:"is_latest"`
 	CreatedAt        time.Time  `json:"created_at"`
 	UpdatedAt        time.Time  `json:"updated_at"`
 }
@@ -323,4 +329,89 @@ type CompanyPricingOverride struct {
 	Notes         *string    `json:"notes"`
 	CreatedAt     time.Time  `json:"created_at"`
 	UpdatedAt     time.Time  `json:"updated_at"`
+}
+
+// Revision tracking models
+
+type BlueprintRevision struct {
+	ID             uuid.UUID  `json:"id"`
+	BlueprintID    uuid.UUID  `json:"blueprint_id"`
+	Version        int        `json:"version"`
+	Filename       string     `json:"filename"`
+	S3Key          string     `json:"s3_key"`
+	FileSize       *int64     `json:"file_size"`
+	MimeType       *string    `json:"mime_type"`
+	AnalysisData   *string    `json:"analysis_data"`
+	ChangesSummary *string    `json:"changes_summary"` // JSONB stored as string
+	CreatedBy      *uuid.UUID `json:"created_by"`
+	CreatedAt      time.Time  `json:"created_at"`
+}
+
+type BidRevision struct {
+	ID               uuid.UUID  `json:"id"`
+	BidID            uuid.UUID  `json:"bid_id"`
+	Version          int        `json:"version"`
+	Name             *string    `json:"name"`
+	TotalCost        *float64   `json:"total_cost"`
+	LaborCost        *float64   `json:"labor_cost"`
+	MaterialCost     *float64   `json:"material_cost"`
+	MarkupPercentage *float64   `json:"markup_percentage"`
+	FinalPrice       *float64   `json:"final_price"`
+	Status           BidStatus  `json:"status"`
+	BidData          *string    `json:"bid_data"`
+	ChangesSummary   *string    `json:"changes_summary"` // JSONB stored as string
+	CreatedBy        *uuid.UUID `json:"created_by"`
+	CreatedAt        time.Time  `json:"created_at"`
+}
+
+// Comparison result models
+
+type ChangeType string
+
+const (
+	ChangeTypeAdded    ChangeType = "added"
+	ChangeTypeRemoved  ChangeType = "removed"
+	ChangeTypeModified ChangeType = "modified"
+)
+
+type BlueprintChange struct {
+	ChangeType  ChangeType  `json:"change_type"`
+	Category    string      `json:"category"` // room, opening, fixture, measurement, material
+	Description string      `json:"description"`
+	OldValue    interface{} `json:"old_value,omitempty"`
+	NewValue    interface{} `json:"new_value,omitempty"`
+	Impact      *string     `json:"impact,omitempty"` // High, Medium, Low
+}
+
+type BlueprintComparison struct {
+	FromVersion int                `json:"from_version"`
+	ToVersion   int                `json:"to_version"`
+	Changes     []BlueprintChange  `json:"changes"`
+	Summary     ComparisonSummary  `json:"summary"`
+}
+
+type BidChange struct {
+	ChangeType  ChangeType  `json:"change_type"`
+	Category    string      `json:"category"` // cost, quantity, scope, timeline, terms, line_item
+	Trade       *string     `json:"trade,omitempty"`
+	Description string      `json:"description"`
+	OldValue    interface{} `json:"old_value,omitempty"`
+	NewValue    interface{} `json:"new_value,omitempty"`
+	Impact      *string     `json:"impact,omitempty"` // High, Medium, Low
+}
+
+type BidComparison struct {
+	FromVersion int               `json:"from_version"`
+	ToVersion   int               `json:"to_version"`
+	Changes     []BidChange       `json:"changes"`
+	Summary     ComparisonSummary `json:"summary"`
+}
+
+type ComparisonSummary struct {
+	TotalChanges     int            `json:"total_changes"`
+	AddedCount       int            `json:"added_count"`
+	RemovedCount     int            `json:"removed_count"`
+	ModifiedCount    int            `json:"modified_count"`
+	HighImpactCount  int            `json:"high_impact_count"`
+	ChangesByCategory map[string]int `json:"changes_by_category"`
 }

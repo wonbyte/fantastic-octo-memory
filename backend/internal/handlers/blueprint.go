@@ -64,6 +64,8 @@ func (h *Handler) CreateUploadURL(w http.ResponseWriter, r *http.Request) {
 		S3Key:          s3Key,
 		UploadStatus:   models.UploadStatusPending,
 		AnalysisStatus: models.AnalysisStatusNotStarted,
+		Version:        1,
+		IsLatest:       true,
 		CreatedAt:      time.Now(),
 		UpdatedAt:      time.Now(),
 	}
