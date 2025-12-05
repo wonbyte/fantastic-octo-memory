@@ -269,3 +269,58 @@ type BidPDFInfo struct {
 	PDFURL string `json:"pdf_url"`
 	S3Key  string `json:"s3_key"`
 }
+
+// Cost database models
+
+type MaterialCost struct {
+	ID          uuid.UUID  `json:"id"`
+	Name        string     `json:"name"`
+	Description *string    `json:"description"`
+	Category    string     `json:"category"`
+	Unit        string     `json:"unit"`
+	BasePrice   float64    `json:"base_price"`
+	Source      string     `json:"source"`
+	SourceID    *string    `json:"source_id"`
+	Region      *string    `json:"region"`
+	LastUpdated time.Time  `json:"last_updated"`
+	CreatedAt   time.Time  `json:"created_at"`
+	UpdatedAt   time.Time  `json:"updated_at"`
+}
+
+type LaborRate struct {
+	ID          uuid.UUID  `json:"id"`
+	Trade       string     `json:"trade"`
+	Description *string    `json:"description"`
+	HourlyRate  float64    `json:"hourly_rate"`
+	Source      string     `json:"source"`
+	SourceID    *string    `json:"source_id"`
+	Region      *string    `json:"region"`
+	LastUpdated time.Time  `json:"last_updated"`
+	CreatedAt   time.Time  `json:"created_at"`
+	UpdatedAt   time.Time  `json:"updated_at"`
+}
+
+type RegionalAdjustment struct {
+	ID                 uuid.UUID  `json:"id"`
+	Region             string     `json:"region"`
+	StateCode          *string    `json:"state_code"`
+	City               *string    `json:"city"`
+	AdjustmentFactor   float64    `json:"adjustment_factor"`
+	CostOfLivingIndex  *int       `json:"cost_of_living_index"`
+	Source             string     `json:"source"`
+	LastUpdated        time.Time  `json:"last_updated"`
+	CreatedAt          time.Time  `json:"created_at"`
+	UpdatedAt          time.Time  `json:"updated_at"`
+}
+
+type CompanyPricingOverride struct {
+	ID            uuid.UUID  `json:"id"`
+	UserID        uuid.UUID  `json:"user_id"`
+	OverrideType  string     `json:"override_type"`
+	ItemKey       string     `json:"item_key"`
+	OverrideValue float64    `json:"override_value"`
+	IsPercentage  bool       `json:"is_percentage"`
+	Notes         *string    `json:"notes"`
+	CreatedAt     time.Time  `json:"created_at"`
+	UpdatedAt     time.Time  `json:"updated_at"`
+}
