@@ -113,6 +113,8 @@ async def analyze_blueprint(request: AnalyzeBlueprintRequest) -> AnalyzeBlueprin
             raw_ocr_text=ocr_result.raw_text,
             confidence_score=analysis.confidence_score,
             processing_time_ms=processing_time_ms,
+            scale_info=analysis.scale_info,
+            trade_type=analysis.trade_type,
         )
 
         logger.info(
@@ -120,6 +122,7 @@ async def analyze_blueprint(request: AnalyzeBlueprintRequest) -> AnalyzeBlueprin
             blueprint_id=request.blueprint_id,
             processing_time_ms=processing_time_ms,
             confidence=analysis.confidence_score,
+            trade_type=analysis.trade_type,
         )
 
         return response
