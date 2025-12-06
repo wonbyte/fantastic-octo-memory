@@ -63,6 +63,8 @@ class AnalyzeBlueprintResponse(BaseModel):
     raw_ocr_text: str | None = Field(None, description="Raw OCR extracted text")
     confidence_score: float = Field(..., description="Overall confidence score", ge=0, le=1)
     processing_time_ms: int = Field(..., description="Processing time in milliseconds")
+    scale_info: dict | None = Field(None, description="Detected scale information")
+    trade_type: str | None = Field(None, description="Detected trade type if specialized")
 
 
 class LineItem(BaseModel):
