@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { View, Text, ScrollView, TextInput, TouchableOpacity, Alert, ActivityIndicator } from 'react-native';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { api } from '../../../src/api/client';
+import api from '../../../src/api/client';
 import type { AxiosError } from 'axios';
 
 interface PricingOverride {
