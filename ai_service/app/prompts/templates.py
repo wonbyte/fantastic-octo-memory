@@ -307,7 +307,7 @@ and ensuring IBC (International Building Code) compliance. Analyze structural pl
 
 ELECTRICAL_SYMBOLS = {
     "outlets": [
-        "duplex_outlet", "gfci_outlet", "afci_outlet", "220v_outlet", 
+        "duplex_outlet", "gfci_outlet", "afci_outlet", "220v_outlet",
         "floor_outlet", "weatherproof_outlet", "dedicated_outlet"
     ],
     "switches": [

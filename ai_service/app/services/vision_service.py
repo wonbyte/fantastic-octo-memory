@@ -19,7 +19,6 @@ from app.prompts.templates import (
     HVAC_ANALYSIS_PROMPT,
     HVAC_SYMBOLS,
     HVAC_SYSTEM_PROMPT,
-    MULTI_PAGE_ANALYSIS_PROMPT,
     PLUMBING_ANALYSIS_PROMPT,
     PLUMBING_SYMBOLS,
     PLUMBING_SYSTEM_PROMPT,
@@ -240,7 +239,7 @@ class VisionService:
         # Detect scale and trade type
         scale_info = self._detect_scale(ocr_text)
         trade_type = self._detect_trade_type(ocr_text, context)
-        
+
         # Get appropriate prompt and system message for trade type
         prompt_template, system_prompt = self._get_trade_prompt_and_system(trade_type)
         symbol_library = self._get_symbol_library(trade_type)
@@ -315,13 +314,13 @@ class VisionService:
                     content = parts[1].strip()
 
             result = json.loads(content)
-            
+
             # Add detected metadata to result
             if scale_info:
                 result["scale_info"] = scale_info
             if trade_type != "general":
                 result["trade_type"] = trade_type
-            
+
             return result
 
         except json.JSONDecodeError as e:
