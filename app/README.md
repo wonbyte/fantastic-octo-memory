@@ -94,6 +94,12 @@ npm run type-check
 
 # Linting
 npm run lint
+
+# E2E tests (from root directory)
+cd .. && npm run test:e2e
+
+# E2E tests with UI
+cd .. && npm run test:e2e:ui
 ```
 
 ## 🏗️ Features Implemented
@@ -194,13 +200,48 @@ Jest and React Testing Library are used for unit and component tests.
 
 ## 🚧 Future Enhancements
 
-- [ ] Offline mode with local caching
-- [ ] Push notifications for job completion
-- [ ] Dark mode support
-- [ ] Accessibility improvements
-- [ ] Performance optimizations
-- [ ] E2E tests with Detox
+- [x] Offline mode with local caching
+- [x] Push notifications for job completion
+- [x] Dark mode support
+- [x] Accessibility improvements
+- [x] Performance optimizations
+- [x] E2E tests with Playwright
 - [ ] Storybook for component documentation
+
+## ✨ Recent Additions (v1.1.0)
+
+### Dark Mode Support
+- Light, dark, and auto themes
+- Persistent theme preference
+- System theme detection
+- Theme toggle component
+
+### Offline Mode & Caching
+- React Query persistent cache
+- Network status detection
+- Offline indicator UI
+- Data persistence with AsyncStorage
+
+### Push Notifications
+- Local notification support
+- Job completion notifications
+- Error notifications
+- Blueprint analysis complete notifications
+- Configurable notification permissions
+
+### Accessibility Improvements (WCAG Compliance)
+- Accessibility labels on all interactive elements
+- Screen reader support
+- Focus management
+- Proper semantic HTML/ARIA roles
+- Keyboard navigation support
+
+### E2E Testing
+- Playwright test infrastructure
+- Basic E2E test suite
+- User journey tests
+- Responsive design tests
+- Performance tests
 
 ## 📄 API Integration
 

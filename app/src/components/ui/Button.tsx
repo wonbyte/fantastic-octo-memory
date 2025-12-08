@@ -7,7 +7,7 @@ import {
   ViewStyle,
   TextStyle,
 } from 'react-native';
-import { COLORS } from '../../utils/constants';
+import { useTheme } from '../../contexts/ThemeContext';
 
 interface ButtonProps {
   onPress: () => void;
@@ -17,6 +17,8 @@ interface ButtonProps {
   loading?: boolean;
   style?: ViewStyle;
   textStyle?: TextStyle;
+  accessibilityLabel?: string;
+  accessibilityHint?: string;
 }
 
 export const Button: React.FC<ButtonProps> = ({
@@ -27,35 +29,52 @@ export const Button: React.FC<ButtonProps> = ({
   loading = false,
   style,
   textStyle,
+  accessibilityLabel,
+  accessibilityHint,
 }) => {
-  const variantStyles = {
-    primary: styles.primaryButton,
-    secondary: styles.secondaryButton,
-    danger: styles.dangerButton,
+  const { colors } = useTheme();
+
+  const getButtonStyle = () => {
+    if (variant === 'primary') {
+      return { backgroundColor: colors.primary };
+    } else if (variant === 'danger') {
+      return { backgroundColor: colors.error };
+    } else {
+      return {
+        backgroundColor: 'transparent',
+        borderWidth: 1,
+        borderColor: colors.primary,
+      };
+    }
   };
 
-  const variantTextStyles = {
-    primary: styles.primaryButtonText,
-    secondary: styles.secondaryButtonText,
-    danger: styles.dangerButtonText,
+  const getTextColor = () => {
+    if (variant === 'secondary') {
+      return colors.primary;
+    }
+    return '#FFFFFF';
   };
 
   return (
     <TouchableOpacity
       style={[
         styles.button,
-        variantStyles[variant],
-        disabled && styles.disabledButton,
+        getButtonStyle(),
+        disabled && { opacity: 0.5 },
         style,
       ]}
       onPress={onPress}
       disabled={disabled || loading}
       activeOpacity={0.7}
+      accessibilityRole="button"
+      accessibilityLabel={accessibilityLabel || title}
+      accessibilityHint={accessibilityHint}
+      accessibilityState={{ disabled: disabled || loading, busy: loading }}
     >
       {loading ? (
-        <ActivityIndicator color={variant === 'secondary' ? COLORS.primary : '#FFFFFF'} />
+        <ActivityIndicator color={getTextColor()} />
       ) : (
-        <Text style={[styles.buttonText, variantTextStyles[variant], textStyle]}>
+        <Text style={[styles.buttonText, { color: getTextColor() }, textStyle]}>
           {title}
         </Text>
       )}
@@ -72,31 +91,8 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     minHeight: 48,
   },
-  primaryButton: {
-    backgroundColor: COLORS.primary,
-  },
-  secondaryButton: {
-    backgroundColor: 'transparent',
-    borderWidth: 1,
-    borderColor: COLORS.primary,
-  },
-  dangerButton: {
-    backgroundColor: COLORS.error,
-  },
-  disabledButton: {
-    opacity: 0.5,
-  },
   buttonText: {
     fontSize: 16,
     fontWeight: '600',
-  },
-  primaryButtonText: {
-    color: '#FFFFFF',
-  },
-  secondaryButtonText: {
-    color: COLORS.primary,
-  },
-  dangerButtonText: {
-    color: '#FFFFFF',
   },
 });

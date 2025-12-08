@@ -7,7 +7,7 @@ import {
   TextInputProps,
   ViewStyle,
 } from 'react-native';
-import { COLORS } from '../../utils/constants';
+import { useTheme } from '../../contexts/ThemeContext';
 
 interface InputProps extends TextInputProps {
   label?: string;
@@ -22,15 +22,41 @@ export const Input: React.FC<InputProps> = ({
   style,
   ...props
 }) => {
+  const { colors } = useTheme();
+  
   return (
     <View style={[styles.container, containerStyle]}>
-      {label && <Text style={styles.label}>{label}</Text>}
+      {label && (
+        <Text
+          style={[styles.label, { color: colors.text }]}
+          accessibilityLabel={label}
+        >
+          {label}
+        </Text>
+      )}
       <TextInput
-        style={[styles.input, error && styles.inputError, style]}
-        placeholderTextColor={COLORS.text.light}
+        style={[
+          styles.input,
+          {
+            borderColor: error ? colors.error : colors.border,
+            color: colors.text,
+            backgroundColor: colors.background,
+          },
+          style,
+        ]}
+        placeholderTextColor={colors.textLight}
+        accessibilityLabel={label || 'Text input'}
+        accessibilityHint={error}
         {...props}
       />
-      {error && <Text style={styles.errorText}>{error}</Text>}
+      {error && (
+        <Text
+          style={[styles.errorText, { color: colors.error }]}
+          accessibilityRole="alert"
+        >
+          {error}
+        </Text>
+      )}
     </View>
   );
 };
@@ -42,26 +68,18 @@ const styles = StyleSheet.create({
   label: {
     fontSize: 14,
     fontWeight: '600',
-    color: COLORS.text.primary,
     marginBottom: 8,
   },
   input: {
     borderWidth: 1,
-    borderColor: COLORS.border,
     borderRadius: 8,
     paddingHorizontal: 16,
     paddingVertical: 12,
     fontSize: 16,
-    color: COLORS.text.primary,
-    backgroundColor: COLORS.background.primary,
     minHeight: 48,
-  },
-  inputError: {
-    borderColor: COLORS.error,
   },
   errorText: {
     fontSize: 12,
-    color: COLORS.error,
     marginTop: 4,
   },
 });
