@@ -47,7 +47,7 @@ describe('UI Components', () => {
       await new Promise(resolve => setTimeout(resolve, 100));
       expect(queryByText('Test Button')).toBeFalsy();
       // Check for ActivityIndicator via testID
-      const activityIndicator = await findByTestId('activity-indicator').catch(() => null);
+      await findByTestId('activity-indicator').catch(() => null);
       // If testID doesn't work, just check that the button text is not visible
       expect(queryByText('Test Button')).toBeFalsy();
     });
