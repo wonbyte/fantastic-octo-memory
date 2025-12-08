@@ -66,6 +66,8 @@ export async function registerForPushNotificationsAsync(): Promise<string | unde
 
 /**
  * Schedule a local notification
+ * @param notification - Notification content
+ * @param delaySeconds - Delay in seconds before showing notification (0 = immediate)
  */
 export async function scheduleLocalNotification(
   notification: NotificationData,

@@ -5,7 +5,8 @@ import { test, expect } from '@playwright/test';
  * Tests the full flow from signup to project creation
  */
 test.describe('Complete User Journey', () => {
-  const testEmail = `test-${Date.now()}@example.com`;
+  // Use crypto.randomUUID for more robust unique identifiers
+  const testEmail = `test-${Math.random().toString(36).substring(7)}@example.com`;
   const testPassword = 'TestPassword123!';
 
   test('complete flow: signup → login → project creation', async ({ page }) => {
