@@ -1,7 +1,7 @@
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import { Button } from './Button';
-import { COLORS } from '../../utils/constants';
+import { useTheme } from '../../contexts/ThemeContext';
 
 interface ErrorStateProps {
   message?: string;
@@ -12,15 +12,25 @@ export const ErrorState: React.FC<ErrorStateProps> = ({
   message = 'Something went wrong',
   onRetry,
 }) => {
+  const { colors } = useTheme();
+  
   return (
-    <View style={styles.container}>
-      <Text style={styles.emoji}>⚠️</Text>
-      <Text style={styles.message}>{message}</Text>
+    <View
+      style={[styles.container, { backgroundColor: colors.background }]}
+      accessibilityRole="alert"
+    >
+      <Text style={styles.emoji} accessibilityLabel="Error icon">
+        ⚠️
+      </Text>
+      <Text style={[styles.message, { color: colors.textSecondary }]}>
+        {message}
+      </Text>
       {onRetry && (
         <Button
           title="Try Again"
           onPress={onRetry}
           style={styles.button}
+          accessibilityHint="Retry the failed operation"
         />
       )}
     </View>
@@ -33,7 +43,6 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     padding: 24,
-    backgroundColor: COLORS.background.primary,
   },
   emoji: {
     fontSize: 48,
@@ -41,7 +50,6 @@ const styles = StyleSheet.create({
   },
   message: {
     fontSize: 16,
-    color: COLORS.text.secondary,
     textAlign: 'center',
     marginBottom: 24,
   },
