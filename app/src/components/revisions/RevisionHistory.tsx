@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   View,
   Text,
@@ -30,11 +30,7 @@ export const RevisionHistory: React.FC<RevisionHistoryProps> = ({
   const [error, setError] = useState<string | null>(null);
   const [selectedVersions, setSelectedVersions] = useState<number[]>([]);
 
-  useEffect(() => {
-    loadRevisions();
-  }, [itemId, type]);
-
-  const loadRevisions = async () => {
+  const loadRevisions = useCallback(async () => {
     try {
       setLoading(true);
       setError(null);
@@ -53,7 +49,11 @@ export const RevisionHistory: React.FC<RevisionHistoryProps> = ({
     } finally {
       setLoading(false);
     }
-  };
+  }, [itemId, type]);
+
+  useEffect(() => {
+    loadRevisions();
+  }, [loadRevisions]);
 
   const handleVersionSelect = (version: number) => {
     if (selectedVersions.includes(version)) {

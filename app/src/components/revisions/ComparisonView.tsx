@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   View,
   Text,
@@ -35,11 +35,7 @@ export const ComparisonView: React.FC<ComparisonViewProps> = ({
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    loadComparison();
-  }, [itemId, type, fromVersion, toVersion]);
-
-  const loadComparison = async () => {
+  const loadComparison = useCallback(async () => {
     try {
       setLoading(true);
       setError(null);
@@ -58,7 +54,11 @@ export const ComparisonView: React.FC<ComparisonViewProps> = ({
     } finally {
       setLoading(false);
     }
-  };
+  }, [itemId, type, fromVersion, toVersion]);
+
+  useEffect(() => {
+    loadComparison();
+  }, [loadComparison]);
 
   const getChangeIcon = (changeType: string) => {
     switch (changeType) {
