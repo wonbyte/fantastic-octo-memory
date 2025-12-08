@@ -2,6 +2,7 @@ import React from 'react';
 import { render, waitFor } from '@testing-library/react-native';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { AuthProvider } from '../src/contexts/AuthContext';
+import { ThemeProvider } from '../src/contexts/ThemeContext';
 import Index from '../app/index';
 
 // Mock expo-router
@@ -33,7 +34,9 @@ const queryClient = new QueryClient({
 const renderWithProviders = (component: React.ReactElement) => {
   return render(
     <QueryClientProvider client={queryClient}>
-      <AuthProvider>{component}</AuthProvider>
+      <ThemeProvider>
+        <AuthProvider>{component}</AuthProvider>
+      </ThemeProvider>
     </QueryClientProvider>
   );
 };
