@@ -173,7 +173,9 @@ func RateLimit(config RateLimitConfig) func(http.Handler) http.Handler {
 			// Get correlation ID from context
 			correlationID := ""
 			if val := r.Context().Value(ContextKeyCorrelationID); val != nil {
-				correlationID = val.(string)
+				if id, ok := val.(string); ok {
+					correlationID = id
+				}
 			}
 
 			// Extract client IP
@@ -198,7 +200,9 @@ func RateLimit(config RateLimitConfig) func(http.Handler) http.Handler {
 			// Check user-based rate limit if user is authenticated
 			userID := ""
 			if val := r.Context().Value(ContextKeyUserID); val != nil {
-				userID = val.(string)
+				if id, ok := val.(string); ok {
+					userID = id
+				}
 			}
 
 			if userID != "" {
