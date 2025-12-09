@@ -137,11 +137,42 @@ func main() {
 	// Setup router
 	r := chi.NewRouter()
 
-	// Middleware
+	// Middleware - order matters!
 	r.Use(middleware.CorrelationID)
 	r.Use(middleware.Logger)
 	r.Use(middleware.Recovery)
-	r.Use(middleware.CORS)
+	
+	// Security middleware
+	if cfg.Security.EnableSecurityHeaders {
+		securityConfig := middleware.SecurityHeadersConfig{
+			EnableHSTS:           cfg.Security.EnableHSTS,
+			HSTSMaxAge:           cfg.Security.HSTSMaxAge,
+			EnableCSP:            cfg.Security.EnableCSP,
+			CSPDirectives:        cfg.Security.CSPDirectives,
+			EnableXFrameOptions:  true,
+			XFrameOptionsValue:   "DENY",
+			EnableXContentType:   true,
+			EnableReferrerPolicy: true,
+			ReferrerPolicyValue:  "strict-origin-when-cross-origin",
+		}
+		r.Use(middleware.SecurityHeaders(securityConfig))
+	}
+	
+	// CORS with configured origins
+	r.Use(middleware.CORSWithConfig(cfg.Security.CORSAllowedOrigins))
+	
+	// Rate limiting
+	if cfg.RateLimit.Enabled {
+		rateLimitConfig := middleware.RateLimitConfig{
+			IPRequestsPerMinute:   cfg.RateLimit.IPRequestsPerMinute,
+			UserRequestsPerMinute: cfg.RateLimit.UserRequestsPerMinute,
+			Enabled:               true,
+		}
+		r.Use(middleware.RateLimit(rateLimitConfig))
+	}
+	
+	// Request body size limit
+	r.Use(middleware.RequestBodyLimit(cfg.Security.MaxRequestBodyBytes))
 
 	// Public routes
 	r.Get("/", handler.Root)

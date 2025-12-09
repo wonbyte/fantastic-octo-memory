@@ -46,6 +46,12 @@ func (h *Handler) CreateUploadURL(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// Validate content type
+	if err := h.fileValidator.ValidateContentType(req.ContentType); err != nil {
+		respondError(w, http.StatusBadRequest, fmt.Sprintf("Invalid content type: %v", err))
+		return
+	}
+
 	// Verify project exists (simplified - in production, verify user ownership)
 	project, err := h.projectRepo.GetByID(r.Context(), projectID)
 	if err != nil {
