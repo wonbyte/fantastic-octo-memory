@@ -267,10 +267,14 @@ Before deploying to production:
 - ✅ Set up database backups
 - ✅ Enable error tracking (Sentry)
 - ✅ Configure monitoring
-- ✅ Review security headers
+- ✅ Configure rate limiting
+- ✅ Configure security headers (HSTS, CSP)
+- ✅ Set CORS allowed origins
+- ✅ Review file upload limits
 - ✅ Test E2E flow
 
 See [DEPLOYMENT.md - Security Checklist](./DEPLOYMENT.md#security-checklist) for complete list.
+See [M7_SECURITY_HARDENING.md](./M7_SECURITY_HARDENING.md) for security hardening details.
 
 ### E2E Validation
 
