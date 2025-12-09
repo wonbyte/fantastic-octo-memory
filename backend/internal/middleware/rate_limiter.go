@@ -221,10 +221,12 @@ func RateLimit(config RateLimitConfig) func(http.Handler) http.Handler {
 					w.Write([]byte(`{"error":"Rate limit exceeded. Please try again later."}`))
 					return
 				}
+				// Set user rate limit headers for authenticated requests
+				w.Header().Set("X-RateLimit-Limit", strconv.Itoa(config.UserRequestsPerMinute))
+			} else {
+				// Set IP rate limit headers for unauthenticated requests
+				w.Header().Set("X-RateLimit-Limit", strconv.Itoa(config.IPRequestsPerMinute))
 			}
-
-			// Set rate limit headers
-			w.Header().Set("X-RateLimit-Limit", strconv.Itoa(config.IPRequestsPerMinute))
 
 			next.ServeHTTP(w, r)
 		})

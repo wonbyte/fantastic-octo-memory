@@ -54,7 +54,9 @@ func Logger(next http.Handler) http.Handler {
 		// Get correlation ID from context
 		correlationID := ""
 		if val := r.Context().Value(ContextKeyCorrelationID); val != nil {
-			correlationID = val.(string)
+			if id, ok := val.(string); ok {
+				correlationID = id
+			}
 		}
 
 		// Wrap the response writer to capture status code
@@ -147,7 +149,9 @@ func Recovery(next http.Handler) http.Handler {
 				// Get correlation ID from context
 				correlationID := ""
 				if val := r.Context().Value(ContextKeyCorrelationID); val != nil {
-					correlationID = val.(string)
+					if id, ok := val.(string); ok {
+						correlationID = id
+					}
 				}
 
 				slog.Error("Panic recovered",
