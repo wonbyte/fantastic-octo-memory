@@ -3,6 +3,7 @@ package config
 import (
 	"fmt"
 	"log"
+	"strings"
 	"time"
 
 	"github.com/joho/godotenv"
@@ -207,42 +208,11 @@ func Load() (*Config, error) {
 // splitAndTrim splits a string by delimiter and trims whitespace from each part
 func splitAndTrim(s, delimiter string) []string {
 	parts := []string{}
-	for _, part := range splitString(s, delimiter) {
-		trimmed := trimSpace(part)
+	for _, part := range strings.Split(s, delimiter) {
+		trimmed := strings.TrimSpace(part)
 		if trimmed != "" {
 			parts = append(parts, trimmed)
 		}
 	}
 	return parts
-}
-
-func splitString(s, delimiter string) []string {
-	if s == "" {
-		return []string{}
-	}
-	result := []string{}
-	current := ""
-	for i := 0; i < len(s); i++ {
-		if i+len(delimiter) <= len(s) && s[i:i+len(delimiter)] == delimiter {
-			result = append(result, current)
-			current = ""
-			i += len(delimiter) - 1
-		} else {
-			current += string(s[i])
-		}
-	}
-	result = append(result, current)
-	return result
-}
-
-func trimSpace(s string) string {
-	start := 0
-	end := len(s)
-	for start < end && (s[start] == ' ' || s[start] == '\t' || s[start] == '\n' || s[start] == '\r') {
-		start++
-	}
-	for end > start && (s[end-1] == ' ' || s[end-1] == '\t' || s[end-1] == '\n' || s[end-1] == '\r') {
-		end--
-	}
-	return s[start:end]
 }
