@@ -102,6 +102,44 @@ func CORS(next http.Handler) http.Handler {
 	})
 }
 
+// CORSWithConfig creates a CORS middleware with configurable origins
+func CORSWithConfig(allowedOrigins []string) func(http.Handler) http.Handler {
+	// Create a map for faster origin lookups
+	originMap := make(map[string]bool)
+	for _, origin := range allowedOrigins {
+		originMap[origin] = true
+	}
+
+	return func(next http.Handler) http.Handler {
+		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			origin := r.Header.Get("Origin")
+			
+			// Check if origin is in allowed list
+			if origin != "" && originMap[origin] {
+				w.Header().Set("Access-Control-Allow-Origin", origin)
+				w.Header().Set("Access-Control-Allow-Credentials", "true")
+			} else if len(allowedOrigins) == 0 {
+				// If no origins configured, use permissive CORS for development
+				if origin != "" {
+					w.Header().Set("Access-Control-Allow-Origin", origin)
+					w.Header().Set("Access-Control-Allow-Credentials", "true")
+				}
+			}
+
+			w.Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS")
+			w.Header().Set("Access-Control-Allow-Headers", "Content-Type, Authorization, X-Correlation-ID")
+			w.Header().Set("Access-Control-Expose-Headers", "X-Correlation-ID, X-RateLimit-Limit, X-RateLimit-Remaining")
+
+			if r.Method == http.MethodOptions {
+				w.WriteHeader(http.StatusOK)
+				return
+			}
+
+			next.ServeHTTP(w, r)
+		})
+	}
+}
+
 func Recovery(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		defer func() {
@@ -125,6 +163,18 @@ func Recovery(next http.Handler) http.Handler {
 
 		next.ServeHTTP(w, r)
 	})
+}
+
+// RequestBodyLimit limits the size of request bodies
+func RequestBodyLimit(maxBytes int64) func(http.Handler) http.Handler {
+	return func(next http.Handler) http.Handler {
+		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			// Limit request body size
+			r.Body = http.MaxBytesReader(w, r.Body, maxBytes)
+			
+			next.ServeHTTP(w, r)
+		})
+	}
 }
 
 // Auth middleware validates JWT tokens and adds user info to context

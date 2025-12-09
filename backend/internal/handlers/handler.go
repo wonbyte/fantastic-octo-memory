@@ -43,6 +43,7 @@ type Handler struct {
 	s3Service                *services.S3Service
 	aiService                *services.AIService
 	authService              *services.AuthService
+	fileValidator            *services.FileValidator
 	costIntegrationService   CostIntegrationServiceInterface
 	costDataService          CostDataServiceInterface
 }
@@ -90,6 +91,7 @@ func NewHandler(
 		s3Service:                s3Service,
 		aiService:                aiService,
 		authService:              authService,
+		fileValidator:            services.NewFileValidator(),
 		costIntegrationService:   costIntegrationService,
 		costDataService:          costDataService,
 	}
