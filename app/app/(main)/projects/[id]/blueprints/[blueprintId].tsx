@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import {
   View,
   Text,
@@ -13,6 +13,7 @@ import { Card } from '../../../../../src/components/ui/Card';
 import { Button } from '../../../../../src/components/ui/Button';
 import { Loading } from '../../../../../src/components/ui/Loading';
 import { ErrorState } from '../../../../../src/components/ui/ErrorState';
+import { RevisionHistory, ComparisonView } from '../../../../../src/components/revisions';
 import { COLORS, STATUS_COLORS } from '../../../../../src/utils/constants';
 
 export default function BlueprintDetailScreen() {
@@ -20,6 +21,8 @@ export default function BlueprintDetailScreen() {
   const { data: blueprint, isLoading, error, refetch } = useBlueprint(blueprintId);
   const { data: jobs } = useJobsByBlueprint(blueprintId);
   const triggerAnalysis = useTriggerAnalysis();
+  const [showRevisions, setShowRevisions] = useState(false);
+  const [comparisonVersions, setComparisonVersions] = useState<{ from: number; to: number } | null>(null);
 
   const handleAnalyze = async () => {
     if (!blueprintId || !projectId) return;
@@ -68,6 +71,16 @@ export default function BlueprintDetailScreen() {
                      blueprint.analysis_status !== 'queued';
 
   const latestJob = jobs && jobs.length > 0 ? jobs[0] : null;
+
+  const handleCompare = (from: number, to: number) => {
+    setComparisonVersions({ from, to });
+    setShowRevisions(false);
+  };
+
+  const handleBackToRevisions = () => {
+    setComparisonVersions(null);
+    setShowRevisions(true);
+  };
 
   return (
     <ScrollView style={styles.container}>
@@ -173,14 +186,55 @@ export default function BlueprintDetailScreen() {
             />
           </Card>
         )}
-
-        <Button
-          title="Back to Project"
-          onPress={() => router.back()}
-          variant="secondary"
-          style={styles.backButton}
-        />
       </Card>
+
+      {/* Revision History Section */}
+      <Card style={styles.card}>
+        <View style={styles.revisionHeader}>
+          <Text style={styles.sectionTitle}>Revision History</Text>
+          <Button
+            title={showRevisions ? "Hide Revisions" : "View Revisions"}
+            onPress={() => {
+              setShowRevisions(!showRevisions);
+              setComparisonVersions(null);
+            }}
+            variant="secondary"
+            style={styles.revisionToggleButton}
+          />
+        </View>
+
+        {showRevisions && !comparisonVersions && (
+          <RevisionHistory
+            itemId={blueprintId}
+            type="blueprint"
+            onCompare={handleCompare}
+          />
+        )}
+
+        {comparisonVersions && (
+          <View>
+            <Button
+              title="← Back to Revisions"
+              onPress={handleBackToRevisions}
+              variant="secondary"
+              style={styles.backToRevisionsButton}
+            />
+            <ComparisonView
+              itemId={blueprintId}
+              type="blueprint"
+              fromVersion={comparisonVersions.from}
+              toVersion={comparisonVersions.to}
+            />
+          </View>
+        )}
+      </Card>
+
+      <Button
+        title="Back to Project"
+        onPress={() => router.back()}
+        variant="secondary"
+        style={styles.backButton}
+      />
     </ScrollView>
   );
 }
@@ -253,6 +307,24 @@ const styles = StyleSheet.create({
     marginTop: 12,
   },
   backButton: {
+    margin: 16,
     marginTop: 8,
+  },
+  revisionHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 16,
+  },
+  sectionTitle: {
+    fontSize: 20,
+    fontWeight: '600',
+    color: COLORS.text.primary,
+  },
+  revisionToggleButton: {
+    minWidth: 140,
+  },
+  backToRevisionsButton: {
+    marginBottom: 16,
   },
 });
