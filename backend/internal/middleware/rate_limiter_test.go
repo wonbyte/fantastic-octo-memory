@@ -155,6 +155,18 @@ func TestGetClientIP(t *testing.T) {
 			expectedIP:    "10.0.0.1",
 		},
 		{
+			name:          "X-Forwarded-For with multiple IPs",
+			remoteAddr:    "192.168.1.1:12345",
+			xForwardedFor: "10.0.0.1, 10.0.0.2, 10.0.0.3",
+			expectedIP:    "10.0.0.1",
+		},
+		{
+			name:          "X-Forwarded-For with spaces",
+			remoteAddr:    "192.168.1.1:12345",
+			xForwardedFor: "  10.0.0.1  , 10.0.0.2",
+			expectedIP:    "10.0.0.1",
+		},
+		{
 			name:       "X-Real-IP takes precedence over RemoteAddr",
 			remoteAddr: "192.168.1.1:12345",
 			xRealIP:    "10.0.0.2",

@@ -2,9 +2,11 @@ package middleware
 
 import (
 	"log/slog"
+	"math"
 	"net"
 	"net/http"
 	"strconv"
+	"strings"
 	"sync"
 	"time"
 )
@@ -35,7 +37,7 @@ func (tb *TokenBucket) Allow() bool {
 
 	now := time.Now()
 	elapsed := now.Sub(tb.lastRefill).Seconds()
-	tb.tokens = min(tb.capacity, tb.tokens+elapsed*tb.refillRate)
+	tb.tokens = math.Min(tb.capacity, tb.tokens+elapsed*tb.refillRate)
 	tb.lastRefill = now
 
 	if tb.tokens >= 1 {
@@ -238,12 +240,11 @@ func getClientIP(r *http.Request) string {
 	// Check X-Forwarded-For header (set by proxies)
 	xff := r.Header.Get("X-Forwarded-For")
 	if xff != "" {
-		// X-Forwarded-For can contain multiple IPs, get the first one
-		if ip, _, err := net.SplitHostPort(xff); err == nil {
-			return ip
+		// X-Forwarded-For can contain multiple comma-separated IPs, get the first one
+		ips := strings.Split(xff, ",")
+		if len(ips) > 0 {
+			return strings.TrimSpace(ips[0])
 		}
-		// If no port, just use the value as-is
-		return xff
 	}
 
 	// Check X-Real-IP header (set by some proxies)
@@ -258,11 +259,4 @@ func getClientIP(r *http.Request) string {
 		return r.RemoteAddr
 	}
 	return ip
-}
-
-func min(a, b float64) float64 {
-	if a < b {
-		return a
-	}
-	return b
 }
