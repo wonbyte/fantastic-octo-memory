@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/google/uuid"
@@ -174,8 +175,10 @@ func (s *PDFService) addCoverPage(pdf *gofpdf.Fpdf, projectName string, bid *mod
 	
 	// Add logo if available
 	if logoPath != "" {
+		// Detect image type from file extension
+		imageType := s.detectImageType(logoPath)
 		// Try to add logo - if it fails, continue without it
-		pdf.ImageOptions(logoPath, 70, 30, 70, 0, false, gofpdf.ImageOptions{ImageType: "PNG", ReadDpi: true}, 0, "")
+		pdf.ImageOptions(logoPath, 70, 30, 70, 0, false, gofpdf.ImageOptions{ImageType: imageType, ReadDpi: true}, 0, "")
 	}
 	
 	// Company Name
@@ -237,7 +240,9 @@ func (s *PDFService) addHeaderWithBranding(pdf *gofpdf.Fpdf, projectName string,
 	
 	// Add small logo if available (top right corner)
 	if logoPath != "" {
-		pdf.ImageOptions(logoPath, 160, startY, 30, 0, false, gofpdf.ImageOptions{ImageType: "PNG", ReadDpi: true}, 0, "")
+		// Detect image type from file extension
+		imageType := s.detectImageType(logoPath)
+		pdf.ImageOptions(logoPath, 160, startY, 30, 0, false, gofpdf.ImageOptions{ImageType: imageType, ReadDpi: true}, 0, "")
 	}
 	
 	// Company name and title
@@ -389,4 +394,22 @@ func (s *PDFService) ParseBidDataFromJSON(bidData string) (*models.GenerateBidRe
 func (s *PDFService) GeneratePDFFilename(projectID uuid.UUID, bidID uuid.UUID) string {
 	timestamp := time.Now().Format("20060102-150405")
 	return fmt.Sprintf("bids/%s/bid-%s-%s.pdf", projectID.String(), bidID.String()[:8], timestamp)
+}
+
+// detectImageType detects image format from file extension
+// Supports PNG, JPEG, JPG, and GIF formats
+func (s *PDFService) detectImageType(filename string) string {
+	// Convert to lowercase for case-insensitive comparison
+	lowerFilename := strings.ToLower(filename)
+	
+	if strings.HasSuffix(lowerFilename, ".png") {
+		return "PNG"
+	} else if strings.HasSuffix(lowerFilename, ".jpg") || strings.HasSuffix(lowerFilename, ".jpeg") {
+		return "JPEG"
+	} else if strings.HasSuffix(lowerFilename, ".gif") {
+		return "GIF"
+	}
+	
+	// Default to PNG if unknown
+	return "PNG"
 }

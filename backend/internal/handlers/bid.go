@@ -383,8 +383,10 @@ func (h *Handler) GetBidExcel(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Set headers for Excel download
+	// Note: Using .csv extension with Excel-compatible encoding (UTF-8 BOM)
+	// For true .xlsx format, would need excelize library
 	filename := fmt.Sprintf("bid-%s-%s.csv", bid.ID.String()[:8], time.Now().Format("20060102"))
-	w.Header().Set("Content-Type", "text/csv")
+	w.Header().Set("Content-Type", "application/vnd.ms-excel")
 	w.Header().Set("Content-Disposition", fmt.Sprintf("attachment; filename=%s", filename))
 	w.Write(excelBytes)
 }
