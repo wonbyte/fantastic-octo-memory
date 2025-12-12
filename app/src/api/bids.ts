@@ -22,6 +22,20 @@ export const bidsApi = {
     return response.data;
   },
 
+  downloadBidCSV: async (bidId: string): Promise<Blob> => {
+    const response = await apiClient.get(`/bids/${bidId}/csv`, {
+      responseType: 'blob',
+    });
+    return response.data;
+  },
+
+  downloadBidExcel: async (bidId: string): Promise<Blob> => {
+    const response = await apiClient.get(`/bids/${bidId}/excel`, {
+      responseType: 'blob',
+    });
+    return response.data;
+  },
+
   getPricingSummary: async (projectId: string, blueprintId: string): Promise<PricingSummary> => {
     const response = await apiClient.get<PricingSummary>(
       `/projects/${projectId}/pricing-summary?blueprint_id=${blueprintId}`

@@ -12,6 +12,10 @@ type User struct {
 	PasswordHash string     `json:"-"`
 	Name         *string    `json:"name"`
 	CompanyName  *string    `json:"company_name"`
+	CompanyLogo  *string    `json:"company_logo,omitempty"` // S3 URL or path to logo
+	CompanyPhone *string    `json:"company_phone,omitempty"`
+	CompanyAddress *string  `json:"company_address,omitempty"`
+	LicenseNumber *string   `json:"license_number,omitempty"`
 	CreatedAt    time.Time  `json:"created_at"`
 	UpdatedAt    time.Time  `json:"updated_at"`
 }
@@ -242,6 +246,18 @@ type PricingSummary struct {
 }
 
 // Bid generation request/response models
+
+// CompanyInfo represents company branding and contact information for PDF export
+type CompanyInfo struct {
+	Name           string  `json:"name"`
+	Logo           *string `json:"logo,omitempty"`            // S3 URL or path to logo image
+	Address        *string `json:"address,omitempty"`
+	Phone          *string `json:"phone,omitempty"`
+	Email          *string `json:"email,omitempty"`
+	Website        *string `json:"website,omitempty"`
+	LicenseNumber  *string `json:"license_number,omitempty"`
+	InsuranceInfo  *string `json:"insurance_info,omitempty"`
+}
 
 type GenerateBidRequest struct {
 	ProjectID        uuid.UUID      `json:"project_id"`

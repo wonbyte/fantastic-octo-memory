@@ -300,6 +300,83 @@ See [E2E_TESTING.md](./E2E_TESTING.md) for detailed testing procedures.
 
 ---
 
+## 📄 Bid Export & Download
+
+The platform provides professional bid export capabilities in multiple formats:
+
+### Supported Formats
+
+- **PDF** - Professional bid proposals with company branding
+  - Cover page with logo
+  - Itemized cost breakdown
+  - Trade breakdown summary
+  - Inclusions/exclusions
+  - Payment terms and warranty
+  
+- **CSV** - Data export for analysis and integration
+  - Full bid details in comma-separated format
+  - Compatible with all spreadsheet applications
+  - Easy to import into other systems
+
+- **Excel** - Spreadsheet-ready format
+  - UTF-8 BOM encoded for Excel compatibility
+  - Opens directly in Microsoft Excel
+  - Maintains data integrity
+
+### Features
+
+✅ **Professional PDF Template**
+- Company logo and branding support
+- Optional cover page with company information
+- Itemized trade breakdown
+- Detailed inclusions and exclusions
+- Payment terms and warranty information
+
+✅ **Multi-Format Consistency**
+- Same data across all export formats
+- Format-optimized presentation
+- Reliable data integrity
+
+✅ **Easy Downloads**
+- Simple API endpoints
+- Frontend integration ready
+- Direct file downloads
+
+### API Endpoints
+
+```bash
+# Get PDF URL
+GET /bids/{id}/pdf
+
+# Download CSV
+GET /bids/{id}/csv
+
+# Download Excel
+GET /bids/{id}/excel
+```
+
+### Usage Example
+
+```typescript
+import { bidsApi } from './api/bids';
+
+// Download PDF
+const { pdf_url } = await bidsApi.getBidPDF(bidId);
+window.open(pdf_url, '_blank');
+
+// Download CSV
+const csvBlob = await bidsApi.downloadBidCSV(bidId);
+// Create download link and trigger download
+
+// Download Excel
+const excelBlob = await bidsApi.downloadBidExcel(bidId);
+// Create download link and trigger download
+```
+
+For detailed documentation, see [BID_EXPORT_GUIDE.md](./BID_EXPORT_GUIDE.md)
+
+---
+
 ## 🤝 Contributing
 
 1. Create a feature branch from `main`
@@ -317,10 +394,12 @@ For issues and questions, please open a GitHub issue.
 
 ## 📚 Additional Documentation
 
+- [BID_EXPORT_GUIDE.md](./BID_EXPORT_GUIDE.md) - Comprehensive bid export and download guide
 - [DEPLOYMENT.md](./DEPLOYMENT.md) - Production deployment guide
 - [E2E_TESTING.md](./E2E_TESTING.md) - End-to-end testing guide
 - [M5_IMPLEMENTATION_SUMMARY.md](./M5_IMPLEMENTATION_SUMMARY.md) - Milestone 5 summary
 - [M6_IMPLEMENTATION_SUMMARY.md](./M6_IMPLEMENTATION_SUMMARY.md) - Milestone 6 summary
+- [M7_IMPLEMENTATION_SUMMARY.md](./M7_IMPLEMENTATION_SUMMARY.md) - Milestone 7 summary
 - [backend/README.md](./backend/README.md) - Backend service documentation
 - [ai_service/README.md](./ai_service/README.md) - AI service documentation (if exists)
 - [app/README.md](./app/README.md) - Frontend application documentation

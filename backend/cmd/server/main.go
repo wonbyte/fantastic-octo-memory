@@ -207,6 +207,8 @@ func main() {
 		r.Get("/projects/{id}/bids", handler.GetProjectBids)
 		r.Get("/bids/{id}", handler.GetBid)
 		r.Get("/bids/{id}/pdf", handler.GetBidPDF)
+		r.Get("/bids/{id}/csv", handler.GetBidCSV)
+		r.Get("/bids/{id}/excel", handler.GetBidExcel)
 		
 		// Blueprint revision routes
 		r.Get("/blueprints/{id}/revisions", handler.GetBlueprintRevisions)
