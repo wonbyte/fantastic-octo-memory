@@ -289,6 +289,106 @@ func (h *Handler) GetBidPDF(w http.ResponseWriter, r *http.Request) {
 	})
 }
 
+// GetBidCSV returns the CSV export for a bid
+func (h *Handler) GetBidCSV(w http.ResponseWriter, r *http.Request) {
+	bidID, err := uuid.Parse(chi.URLParam(r, "id"))
+	if err != nil {
+		respondError(w, http.StatusBadRequest, "Invalid bid ID")
+		return
+	}
+
+	bid, err := h.bidRepo.GetByID(r.Context(), bidID)
+	if err != nil {
+		respondError(w, http.StatusNotFound, "Bid not found")
+		return
+	}
+
+	if bid.BidData == nil {
+		respondError(w, http.StatusInternalServerError, "Bid data not available")
+		return
+	}
+
+	// Parse bid data
+	exportService := services.NewExportService()
+	bidResponse, err := exportService.ParseBidDataFromJSON(*bid.BidData)
+	if err != nil {
+		slog.Error("Failed to parse bid data", "error", err)
+		respondError(w, http.StatusInternalServerError, "Failed to parse bid data")
+		return
+	}
+
+	// Get project name
+	project, err := h.projectRepo.GetByID(r.Context(), bid.ProjectID)
+	if err != nil {
+		slog.Warn("Failed to get project", "error", err)
+		project = &models.Project{Name: "Unknown Project"}
+	}
+
+	// Generate CSV
+	csvBytes, err := exportService.GenerateBidCSV(bid, bidResponse, project.Name)
+	if err != nil {
+		slog.Error("Failed to generate CSV", "error", err)
+		respondError(w, http.StatusInternalServerError, "Failed to generate CSV")
+		return
+	}
+
+	// Set headers for CSV download
+	filename := fmt.Sprintf("bid-%s-%s.csv", bid.ID.String()[:8], time.Now().Format("20060102"))
+	w.Header().Set("Content-Type", "text/csv")
+	w.Header().Set("Content-Disposition", fmt.Sprintf("attachment; filename=%s", filename))
+	w.Write(csvBytes)
+}
+
+// GetBidExcel returns the Excel export for a bid
+func (h *Handler) GetBidExcel(w http.ResponseWriter, r *http.Request) {
+	bidID, err := uuid.Parse(chi.URLParam(r, "id"))
+	if err != nil {
+		respondError(w, http.StatusBadRequest, "Invalid bid ID")
+		return
+	}
+
+	bid, err := h.bidRepo.GetByID(r.Context(), bidID)
+	if err != nil {
+		respondError(w, http.StatusNotFound, "Bid not found")
+		return
+	}
+
+	if bid.BidData == nil {
+		respondError(w, http.StatusInternalServerError, "Bid data not available")
+		return
+	}
+
+	// Parse bid data
+	exportService := services.NewExportService()
+	bidResponse, err := exportService.ParseBidDataFromJSON(*bid.BidData)
+	if err != nil {
+		slog.Error("Failed to parse bid data", "error", err)
+		respondError(w, http.StatusInternalServerError, "Failed to parse bid data")
+		return
+	}
+
+	// Get project name
+	project, err := h.projectRepo.GetByID(r.Context(), bid.ProjectID)
+	if err != nil {
+		slog.Warn("Failed to get project", "error", err)
+		project = &models.Project{Name: "Unknown Project"}
+	}
+
+	// Generate Excel-compatible CSV
+	excelBytes, err := exportService.GenerateBidExcel(bid, bidResponse, project.Name)
+	if err != nil {
+		slog.Error("Failed to generate Excel export", "error", err)
+		respondError(w, http.StatusInternalServerError, "Failed to generate Excel export")
+		return
+	}
+
+	// Set headers for Excel download
+	filename := fmt.Sprintf("bid-%s-%s.csv", bid.ID.String()[:8], time.Now().Format("20060102"))
+	w.Header().Set("Content-Type", "text/csv")
+	w.Header().Set("Content-Disposition", fmt.Sprintf("attachment; filename=%s", filename))
+	w.Write(excelBytes)
+}
+
 // GetPricingSummary returns the pricing summary for a blueprint
 func (h *Handler) GetPricingSummary(w http.ResponseWriter, r *http.Request) {
 	projectID, err := uuid.Parse(chi.URLParam(r, "id"))
