@@ -1,0 +1,130 @@
+config:
+  target: "http://localhost:8000"
+  phases:
+    # Phase 1: Warm up
+    - duration: 20
+      arrivalRate: 2
+      name: "Warm up"
+    # Phase 2: Moderate load
+    - duration: 60
+      arrivalRate: 5
+      rampTo: 15
+      name: "Ramp up"
+    # Phase 3: Sustained load
+    - duration: 90
+      arrivalRate: 15
+      name: "Sustained load"
+    # Phase 4: Spike test
+    - duration: 20
+      arrivalRate: 30
+      name: "Spike test"
+  
+  # AI service specific timeouts (processing can be slower)
+  timeout: 30
+  
+  # Performance thresholds for AI service
+  ensure:
+    maxErrorRate: 2          # Max 2% error rate (AI can have transient issues)
+    p95: 2000               # 95th percentile < 2s
+    p99: 5000               # 99th percentile < 5s
+
+scenarios:
+  # Scenario 1: Health check
+  - name: "Health Check"
+    weight: 20
+    flow:
+      - get:
+          url: "/health"
+          expect:
+            - statusCode: 200
+            - contentType: json
+            - hasProperty: status
+
+  # Scenario 2: Root endpoint
+  - name: "Root Info"
+    weight: 10
+    flow:
+      - get:
+          url: "/"
+          expect:
+            - statusCode: 200
+            - contentType: json
+
+  # Scenario 3: Blueprint analysis
+  - name: "Blueprint Analysis"
+    weight: 35
+    flow:
+      - post:
+          url: "/analyze-blueprint"
+          json:
+            blueprint_id: "load-test-{{ $randomString() }}"
+            s3_key: "test/blueprint-{{ $randomString() }}.pdf"
+            project_name: "Load Test Project"
+          expect:
+            - statusCode: [200, 500]  # May fail if S3 not available
+      
+      - think: 5  # AI processing takes time
+
+  # Scenario 4: Bid generation
+  - name: "Bid Generation"
+    weight: 35
+    flow:
+      - post:
+          url: "/generate-bid"
+          json:
+            project_id: "proj-{{ $randomString() }}"
+            blueprint_id: "bp-{{ $randomString() }}"
+            takeoff_data:
+              rooms:
+                - name: "Living Room"
+                  dimensions: "20' x 15'"
+                  area: 300.0
+                  room_type: "Living"
+                - name: "Kitchen"
+                  dimensions: "15' x 12'"
+                  area: 180.0
+                  room_type: "Kitchen"
+              openings:
+                - type: "door"
+                  dimensions: "3' x 7'"
+                  quantity: 2
+              fixtures: []
+              materials:
+                - name: "Drywall"
+                  quantity: 500.0
+                  unit: "sq ft"
+            markup_percentage: 20.0
+          expect:
+            - statusCode: 200
+            - contentType: json
+            - hasProperty: bid_id
+            - hasProperty: total_price
+
+  # Scenario 5: Mixed operations
+  - name: "Mixed Operations"
+    weight: 10
+    flow:
+      # Health check
+      - get:
+          url: "/health"
+      
+      - think: 2
+      
+      # Generate small bid
+      - post:
+          url: "/generate-bid"
+          json:
+            project_id: "mixed-test"
+            blueprint_id: "mixed-bp"
+            takeoff_data:
+              rooms:
+                - name: "Small Room"
+                  dimensions: "10' x 10'"
+                  area: 100.0
+                  room_type: "Living"
+              openings: []
+              fixtures: []
+              materials: []
+            markup_percentage: 15.0
+          expect:
+            - statusCode: 200

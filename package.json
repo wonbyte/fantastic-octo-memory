@@ -5,9 +5,14 @@
     "test:e2e": "playwright test",
     "test:e2e:ui": "playwright test --ui",
     "test:e2e:headed": "playwright test --headed",
-    "test:e2e:report": "playwright show-report"
+    "test:e2e:report": "playwright show-report",
+    "test:load:backend": "artillery run load-tests/artillery-backend.yml",
+    "test:load:ai": "artillery run load-tests/artillery-ai-service.yml",
+    "test:load:all": "npm run test:load:backend && npm run test:load:ai",
+    "test:load:report": "artillery report"
   },
   "devDependencies": {
-    "@playwright/test": "^1.57.0"
+    "@playwright/test": "^1.57.0",
+    "artillery": "^2.0.0"
   }
 }

@@ -584,78 +584,120 @@ For each device/browser, verify:
 
 ### Using Playwright (Recommended)
 
-Create `tests/e2e/complete-flow.spec.ts`:
+The project includes comprehensive Playwright E2E tests in the `e2e/` directory:
+
+**Test Files:**
+- `e2e/basic.spec.ts` - Basic functionality and accessibility tests
+- `e2e/user-journey.spec.ts` - Complete user flow tests
+- `e2e/revision-comparison.spec.ts` - Revision comparison feature tests
+- `e2e/complete-workflow.spec.ts` - Comprehensive workflow from signup to PDF download
+
+**Test Coverage:**
+- ✅ Authentication (signup, login, logout)
+- ✅ Project creation and management
+- ✅ Blueprint upload and analysis
+- ✅ Bid generation and export
+- ✅ PDF download
+- ✅ Error handling and edge cases
+- ✅ Mobile responsiveness
+- ✅ Accessibility features
+- ✅ Dark mode
+- ✅ Offline mode
+
+### Running E2E Tests
+
+```bash
+# Install dependencies (first time only)
+npm install
+npx playwright install --with-deps
+
+# Run all E2E tests
+npm run test:e2e
+
+# Run with UI mode (interactive)
+npm run test:e2e:ui
+
+# Run in headed mode (see browser)
+npm run test:e2e:headed
+
+# View test report
+npm run test:e2e:report
+
+# Run specific test file
+npx playwright test e2e/complete-workflow.spec.ts
+
+# Run tests in specific browser
+npx playwright test --project=chromium
+npx playwright test --project=firefox
+npx playwright test --project=webkit
+
+# Debug mode
+npx playwright test --debug
+
+# Run on specific URL
+BASE_URL=https://staging.yourdomain.com npm run test:e2e
+```
+
+### Configuration
+
+The Playwright configuration is in `playwright.config.ts`:
 
 ```typescript
-import { test, expect } from '@playwright/test';
-
-test.describe('Complete User Journey', () => {
-  test('signup → project → blueprint → analysis → bid → PDF', async ({ page }) => {
-    // 1. Signup
-    await page.goto('https://yourdomain.com/signup');
-    await page.fill('input[name="email"]', 'e2e-test@example.com');
-    await page.fill('input[name="password"]', 'TestPassword123');
-    await page.fill('input[name="name"]', 'E2E Test User');
-    await page.click('button[type="submit"]');
-    
-    await expect(page).toHaveURL(/.*dashboard/);
-    
-    // 2. Create Project
-    await page.click('text=New Project');
-    await page.fill('input[name="name"]', 'E2E Test Project');
-    await page.fill('textarea[name="description"]', 'Automated test project');
-    await page.click('button:has-text("Create")');
-    
-    await expect(page.locator('text=E2E Test Project')).toBeVisible();
-    
-    // 3. Upload Blueprint
-    await page.click('text=Upload Blueprint');
-    const fileInput = await page.locator('input[type="file"]');
-    await fileInput.setInputFiles('tests/fixtures/test-blueprint.pdf');
-    
-    await expect(page.locator('text=test-blueprint.pdf')).toBeVisible({ timeout: 30000 });
-    
-    // 4. Trigger Analysis
-    await page.click('text=Analyze Blueprint');
-    await page.click('button:has-text("Confirm")');
-    
-    // Wait for analysis to complete (max 2 minutes)
-    await expect(page.locator('text=Analysis Complete')).toBeVisible({ timeout: 120000 });
-    
-    // 5. Generate Bid
-    await page.click('text=Generate Bid');
-    await page.fill('input[name="bid_name"]', 'E2E Test Bid');
-    await page.click('button:has-text("Generate")');
-    
-    await expect(page.locator('text=E2E Test Bid')).toBeVisible();
-    
-    // 6. Download PDF
-    const [download] = await Promise.all([
-      page.waitForEvent('download'),
-      page.click('text=Download PDF')
-    ]);
-    
-    expect(download.suggestedFilename()).toContain('.pdf');
-    const path = await download.path();
-    expect(path).toBeTruthy();
-  });
+export default defineConfig({
+  testDir: './e2e',
+  fullyParallel: true,
+  retries: process.env.CI ? 2 : 0,
+  workers: process.env.CI ? 1 : undefined,
+  reporter: 'html',
+  use: {
+    baseURL: process.env.BASE_URL || 'http://localhost:3000',
+    trace: 'on-first-retry',
+    screenshot: 'only-on-failure',
+  },
+  projects: [
+    { name: 'chromium', use: { ...devices['Desktop Chrome'] } },
+    { name: 'firefox', use: { ...devices['Desktop Firefox'] } },
+    { name: 'webkit', use: { ...devices['Desktop Safari'] } },
+    { name: 'Mobile Chrome', use: { ...devices['Pixel 5'] } },
+    { name: 'Mobile Safari', use: { ...devices['iPhone 12'] } },
+  ],
 });
 ```
 
-### Running Tests
+### CI/CD Integration
 
+E2E tests run automatically in CI/CD:
+
+```yaml
+# .github/workflows/ci.yml
+e2e-tests:
+  name: E2E Tests (Playwright)
+  runs-on: ubuntu-latest
+  steps:
+    - uses: actions/checkout@v4
+    - name: Set up Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '22'
+    - name: Install dependencies
+      run: npm install
+    - name: Install Playwright Browsers
+      run: npx playwright install --with-deps
+    - name: Run E2E tests
+      run: npm run test:e2e
+```
+
+### Test Results and Artifacts
+
+After running tests:
+- **HTML Report**: `playwright-report/index.html`
+- **Screenshots**: `test-results/` (on failure)
+- **Traces**: Available in report for debugging
+- **Videos**: Captured for failed tests (if configured)
+
+To view the report:
 ```bash
-# Install Playwright
-npm install -D @playwright/test
-
-# Run tests
-npx playwright test
-
-# Run with UI
-npx playwright test --ui
-
-# Generate report
-npx playwright show-report
+npm run test:e2e:report
 ```
 
 ---
@@ -664,20 +706,67 @@ npx playwright show-report
 
 ### Load Testing with Artillery
 
-Create `artillery-config.yml`:
+The project includes comprehensive load testing configurations in the `load-tests/` directory.
 
-```yaml
-config:
-  target: 'https://api.yourdomain.com'
-  phases:
-    - duration: 60
-      arrivalRate: 10
-      name: Warm up
-    - duration: 120
-      arrivalRate: 50
-      name: Ramp up load
-    - duration: 180
-      arrivalRate: 100
+**Configuration Files:**
+- `load-tests/artillery-backend.yml` - Backend API load tests
+- `load-tests/artillery-ai-service.yml` - AI service load tests
+- `load-tests/README.md` - Detailed load testing guide
+
+### Running Load Tests
+
+```bash
+# Install Artillery
+npm install
+
+# Test backend API
+npm run test:load:backend
+
+# Test AI service
+npm run test:load:ai
+
+# Run all load tests
+npm run test:load:all
+
+# Run against custom target
+artillery run --target https://api.yourdomain.com load-tests/artillery-backend.yml
+
+# Run with output report
+artillery run --output report.json load-tests/artillery-backend.yml
+artillery report report.json
+```
+
+### Load Test Scenarios
+
+**Backend API Tests:**
+- Health check monitoring
+- User authentication flow (signup/login)
+- Project CRUD operations
+- Blueprint workflow
+- Bid generation and export
+
+**AI Service Tests:**
+- Health check
+- Blueprint analysis (with S3)
+- Bid generation with takeoff data
+- Mixed operations
+- Concurrent processing
+
+### Performance Targets
+
+**Backend API:**
+- P95 response time: < 500ms
+- P99 response time: < 1000ms
+- Error rate: < 1%
+- Throughput: > 100 RPS
+
+**AI Service:**
+- P95 response time: < 2s
+- P99 response time: < 5s
+- Error rate: < 2%
+- Throughput: > 20 RPS
+
+For detailed load testing documentation, see [load-tests/README.md](./load-tests/README.md)
       name: Sustained load
   variables:
     email: "loadtest-{{ $randomString() }}@example.com"
