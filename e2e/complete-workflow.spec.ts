@@ -92,7 +92,8 @@ test.describe('Complete User Workflow', () => {
     
     if (await uploadButton.isVisible({ timeout: 5000 }).catch(() => false)) {
       // If it's a file input, use it directly
-      if (await uploadButton.evaluate(el => el.tagName) === 'INPUT') {
+      const tagName = await uploadButton.evaluate(el => el.tagName.toUpperCase());
+      if (tagName === 'INPUT') {
         // Create a simple test PDF file (mock)
         const testFilePath = path.join(__dirname, 'fixtures', 'test-blueprint.pdf');
         await uploadButton.setInputFiles(testFilePath).catch(async () => {

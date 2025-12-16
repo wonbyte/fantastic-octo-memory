@@ -24,10 +24,11 @@ config:
       name: "Cool down"
   
   # Environment variables
+  # Note: Use Artillery's built-in random functions for unique values
   variables:
-    email: "loadtest-{{ $randomString() }}-{{ $timestamp }}@example.com"
+    email: "loadtest-{{ $uuid }}@example.com"
     password: "LoadTest123!"
-    projectName: "Load Test Project {{ $randomString() }}"
+    projectName: "Load Test Project"
   
   # Plugins for enhanced reporting
   plugins:
