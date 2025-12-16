@@ -25,7 +25,7 @@ config:
   
   # Environment variables
   variables:
-    email: "loadtest-{{ $randomString() }}@example.com"
+    email: "loadtest-{{ $randomString() }}-{{ $timestamp }}@example.com"
     password: "LoadTest123!"
     projectName: "Load Test Project {{ $randomString() }}"
   
@@ -55,7 +55,7 @@ scenarios:
   - name: "User Authentication"
     weight: 20
     flow:
-      # Sign up new user
+      # Sign up new user with unique email
       - post:
           url: "/auth/signup"
           json:
@@ -67,17 +67,7 @@ scenarios:
             - json: "$.token"
               as: "authToken"
           expect:
-            - statusCode: [200, 201, 409]  # 409 if user exists
-      
-      # If signup failed (user exists), try login
-      - post:
-          url: "/auth/login"
-          json:
-            email: "{{ email }}"
-            password: "{{ password }}"
-          capture:
-            - json: "$.token"
-              as: "authToken"
+            - statusCode: [200, 201]  # Should succeed with unique email
       
       # Verify token works
       - get:
@@ -91,12 +81,14 @@ scenarios:
   - name: "Project CRUD Operations"
     weight: 30
     flow:
-      # Authenticate first
+      # Create new user first
       - post:
-          url: "/auth/login"
+          url: "/auth/signup"
           json:
             email: "{{ email }}"
             password: "{{ password }}"
+            name: "Load Test User"
+            company_name: "Load Test Company"
           capture:
             - json: "$.token"
               as: "authToken"
@@ -152,12 +144,14 @@ scenarios:
   - name: "Blueprint Upload and Analysis"
     weight: 25
     flow:
-      # Authenticate
+      # Create new user
       - post:
-          url: "/auth/login"
+          url: "/auth/signup"
           json:
             email: "{{ email }}"
             password: "{{ password }}"
+            name: "Load Test User"
+            company_name: "Load Test Company"
           capture:
             - json: "$.token"
               as: "authToken"
@@ -187,12 +181,14 @@ scenarios:
   - name: "Bid Generation and Export"
     weight: 15
     flow:
-      # Authenticate
+      # Create new user
       - post:
-          url: "/auth/login"
+          url: "/auth/signup"
           json:
             email: "{{ email }}"
             password: "{{ password }}"
+            name: "Load Test User"
+            company_name: "Load Test Company"
           capture:
             - json: "$.token"
               as: "authToken"
