@@ -1,0 +1,213 @@
+config:
+  target: "http://localhost:8080"
+  phases:
+    # Phase 1: Warm up
+    - duration: 30
+      arrivalRate: 5
+      name: "Warm up"
+    # Phase 2: Ramp up load
+    - duration: 60
+      arrivalRate: 10
+      rampTo: 50
+      name: "Ramp up load"
+    # Phase 3: Sustained load
+    - duration: 120
+      arrivalRate: 50
+      name: "Sustained load"
+    # Phase 4: Spike test
+    - duration: 30
+      arrivalRate: 100
+      name: "Spike test"
+    # Phase 5: Cool down
+    - duration: 30
+      arrivalRate: 10
+      name: "Cool down"
+  
+  # Environment variables
+  variables:
+    email: "loadtest-{{ $randomString() }}@example.com"
+    password: "LoadTest123!"
+    projectName: "Load Test Project {{ $randomString() }}"
+  
+  # Plugins for enhanced reporting
+  plugins:
+    expect: {}
+  
+  # Performance thresholds
+  ensure:
+    maxErrorRate: 1          # Max 1% error rate
+    p95: 500                 # 95th percentile response time < 500ms
+    p99: 1000               # 99th percentile response time < 1000ms
+
+scenarios:
+  # Scenario 1: Health check monitoring
+  - name: "Health Check"
+    weight: 10
+    flow:
+      - get:
+          url: "/health"
+          expect:
+            - statusCode: 200
+            - contentType: json
+            - hasProperty: status
+
+  # Scenario 2: Authentication flow
+  - name: "User Authentication"
+    weight: 20
+    flow:
+      # Sign up new user
+      - post:
+          url: "/auth/signup"
+          json:
+            email: "{{ email }}"
+            password: "{{ password }}"
+            name: "Load Test User"
+            company_name: "Load Test Company"
+          capture:
+            - json: "$.token"
+              as: "authToken"
+          expect:
+            - statusCode: [200, 201, 409]  # 409 if user exists
+      
+      # If signup failed (user exists), try login
+      - post:
+          url: "/auth/login"
+          json:
+            email: "{{ email }}"
+            password: "{{ password }}"
+          capture:
+            - json: "$.token"
+              as: "authToken"
+      
+      # Verify token works
+      - get:
+          url: "/api/projects"
+          headers:
+            Authorization: "Bearer {{ authToken }}"
+          expect:
+            - statusCode: 200
+
+  # Scenario 3: Project management
+  - name: "Project CRUD Operations"
+    weight: 30
+    flow:
+      # Authenticate first
+      - post:
+          url: "/auth/login"
+          json:
+            email: "{{ email }}"
+            password: "{{ password }}"
+          capture:
+            - json: "$.token"
+              as: "authToken"
+      
+      # Create project
+      - post:
+          url: "/api/projects"
+          headers:
+            Authorization: "Bearer {{ authToken }}"
+          json:
+            name: "{{ projectName }}"
+            description: "Load testing project"
+            location: "Test Location"
+            client_name: "Test Client"
+          capture:
+            - json: "$.id"
+              as: "projectId"
+          expect:
+            - statusCode: [200, 201]
+      
+      - think: 2  # Simulate user reading time
+      
+      # Get project details
+      - get:
+          url: "/api/projects/{{ projectId }}"
+          headers:
+            Authorization: "Bearer {{ authToken }}"
+          expect:
+            - statusCode: 200
+      
+      # List all projects
+      - get:
+          url: "/api/projects"
+          headers:
+            Authorization: "Bearer {{ authToken }}"
+          expect:
+            - statusCode: 200
+      
+      - think: 3
+      
+      # Update project
+      - put:
+          url: "/api/projects/{{ projectId }}"
+          headers:
+            Authorization: "Bearer {{ authToken }}"
+          json:
+            name: "{{ projectName }} Updated"
+            description: "Updated description"
+          expect:
+            - statusCode: 200
+
+  # Scenario 4: Blueprint workflow
+  - name: "Blueprint Upload and Analysis"
+    weight: 25
+    flow:
+      # Authenticate
+      - post:
+          url: "/auth/login"
+          json:
+            email: "{{ email }}"
+            password: "{{ password }}"
+          capture:
+            - json: "$.token"
+              as: "authToken"
+      
+      # Create project
+      - post:
+          url: "/api/projects"
+          headers:
+            Authorization: "Bearer {{ authToken }}"
+          json:
+            name: "Blueprint Test Project"
+            description: "For blueprint upload testing"
+          capture:
+            - json: "$.id"
+              as: "projectId"
+      
+      # Note: Actual file upload would require multipart/form-data
+      # This is a simplified version
+      - get:
+          url: "/api/blueprints?project_id={{ projectId }}"
+          headers:
+            Authorization: "Bearer {{ authToken }}"
+          expect:
+            - statusCode: 200
+
+  # Scenario 5: Bid operations
+  - name: "Bid Generation and Export"
+    weight: 15
+    flow:
+      # Authenticate
+      - post:
+          url: "/auth/login"
+          json:
+            email: "{{ email }}"
+            password: "{{ password }}"
+          capture:
+            - json: "$.token"
+              as: "authToken"
+      
+      # Get bids list
+      - get:
+          url: "/api/bids"
+          headers:
+            Authorization: "Bearer {{ authToken }}"
+          expect:
+            - statusCode: 200
+      
+      # Get a specific bid (if exists)
+      # This is a read-heavy scenario
+      - get:
+          url: "/api/bids?limit=10"
+          headers:
+            Authorization: "Bearer {{ authToken }}"
