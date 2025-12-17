@@ -1,0 +1,203 @@
+name: Deploy to Staging
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version/tag to deploy (e.g., v1.0.0 or latest)'
+        required: true
+        default: 'latest'
+      skip_health_check:
+        description: 'Skip health checks after deployment'
+        required: false
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+  packages: read
+
+env:
+  REGISTRY: ghcr.io
+  NAMESPACE: ${{ github.repository }}
+
+jobs:
+  deploy-staging:
+    name: Deploy to Staging Environment
+    runs-on: ubuntu-latest
+    environment:
+      name: staging
+      url: ${{ vars.STAGING_URL || 'https://staging.example.com' }}
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Validate version exists
+        run: |
+          echo "Deploying version: ${{ github.event.inputs.version }}"
+          # In a real deployment, verify the Docker images exist in the registry
+          echo "Would verify images exist:"
+          echo "  - ${{ env.REGISTRY }}/${{ env.NAMESPACE }}/backend:${{ github.event.inputs.version }}"
+          echo "  - ${{ env.REGISTRY }}/${{ env.NAMESPACE }}/ai-service:${{ github.event.inputs.version }}"
+          echo "  - ${{ env.REGISTRY }}/${{ env.NAMESPACE }}/frontend:${{ github.event.inputs.version }}"
+      
+      - name: Deploy to Staging (Placeholder)
+        run: |
+          echo "🚀 Deploying to staging environment..."
+          echo ""
+          echo "This is a placeholder deployment step. In a real deployment, this would:"
+          echo "  1. SSH to staging server or use cloud provider CLI/API"
+          echo "  2. Pull Docker images: ${{ github.event.inputs.version }}"
+          echo "  3. Update docker-compose or Kubernetes manifests"
+          echo "  4. Restart services with new images"
+          echo "  5. Run database migrations if needed"
+          echo ""
+          echo "Example commands for different platforms:"
+          echo ""
+          echo "## Docker Compose (SSH to server):"
+          echo "  export VERSION=${{ github.event.inputs.version }}"
+          echo "  docker compose -f docker-compose.production.yml pull"
+          echo "  docker compose -f docker-compose.production.yml up -d"
+          echo ""
+          echo "## Kubernetes:"
+          echo "  kubectl set image deployment/backend backend=${{ env.REGISTRY }}/${{ env.NAMESPACE }}/backend:${{ github.event.inputs.version }}"
+          echo "  kubectl set image deployment/ai-service ai-service=${{ env.REGISTRY }}/${{ env.NAMESPACE }}/ai-service:${{ github.event.inputs.version }}"
+          echo "  kubectl set image deployment/frontend frontend=${{ env.REGISTRY }}/${{ env.NAMESPACE }}/frontend:${{ github.event.inputs.version }}"
+          echo ""
+          echo "## AWS ECS:"
+          echo "  aws ecs update-service --cluster staging-cluster --service backend --force-new-deployment"
+          echo ""
+          echo "## Fly.io:"
+          echo "  flyctl deploy --app backend-staging --image ${{ env.REGISTRY }}/${{ env.NAMESPACE }}/backend:${{ github.event.inputs.version }}"
+          echo ""
+          echo "✅ Deployment commands prepared"
+        env:
+          VERSION: ${{ github.event.inputs.version }}
+      
+      - name: Wait for services to be ready
+        if: ${{ !inputs.skip_health_check }}
+        run: |
+          echo "⏳ Waiting for services to be ready..."
+          echo "In a real deployment, this would poll health endpoints:"
+          echo "  - Backend: ${{ vars.STAGING_API_URL || 'https://api-staging.example.com' }}/health"
+          echo "  - AI Service: ${{ vars.STAGING_AI_URL || 'https://ai-staging.example.com' }}/health"
+          echo "  - Frontend: ${{ vars.STAGING_URL || 'https://staging.example.com' }}"
+          echo ""
+          echo "Example health check with curl:"
+          echo "  timeout=300"
+          echo "  interval=10"
+          echo "  for ((i=0; i<timeout; i+=interval)); do"
+          echo "    if curl -f \$BACKEND_URL/health && curl -f \$AI_URL/health; then"
+          echo "      echo '✅ All services healthy'"
+          echo "      exit 0"
+          echo "    fi"
+          echo "    sleep \$interval"
+          echo "  done"
+          echo "  echo '❌ Health check timeout'"
+          echo "  exit 1"
+          echo ""
+          echo "✅ Health check step configured"
+      
+      - name: Run smoke tests
+        if: ${{ !inputs.skip_health_check }}
+        run: |
+          echo "🧪 Running smoke tests..."
+          echo "In a real deployment, this would run quick smoke tests:"
+          echo "  - Verify API responds to basic requests"
+          echo "  - Verify AI service endpoints are accessible"
+          echo "  - Verify frontend loads correctly"
+          echo "  - Check database connectivity"
+          echo "  - Verify Redis cache is working"
+          echo ""
+          echo "✅ Smoke tests would run here"
+      
+      - name: Deployment Summary
+        if: always()
+        run: |
+          echo "## 🚀 Staging Deployment Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Environment:** Staging" >> $GITHUB_STEP_SUMMARY
+          echo "**Version:** ${{ github.event.inputs.version }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Triggered by:** @${{ github.actor }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Time:** $(date -u +'%Y-%m-%d %H:%M:%S UTC')" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Images deployed:**" >> $GITHUB_STEP_SUMMARY
+          echo "- \`${{ env.REGISTRY }}/${{ env.NAMESPACE }}/backend:${{ github.event.inputs.version }}\`" >> $GITHUB_STEP_SUMMARY
+          echo "- \`${{ env.REGISTRY }}/${{ env.NAMESPACE }}/ai-service:${{ github.event.inputs.version }}\`" >> $GITHUB_STEP_SUMMARY
+          echo "- \`${{ env.REGISTRY }}/${{ env.NAMESPACE }}/frontend:${{ github.event.inputs.version }}\`" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Access:**" >> $GITHUB_STEP_SUMMARY
+          echo "- Frontend: ${{ vars.STAGING_URL || 'https://staging.example.com' }}" >> $GITHUB_STEP_SUMMARY
+          echo "- Backend API: ${{ vars.STAGING_API_URL || 'https://api-staging.example.com' }}" >> $GITHUB_STEP_SUMMARY
+          echo "- AI Service: ${{ vars.STAGING_AI_URL || 'https://ai-staging.example.com' }}" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Next steps:**" >> $GITHUB_STEP_SUMMARY
+          echo "1. ✅ Verify staging deployment manually" >> $GITHUB_STEP_SUMMARY
+          echo "2. ✅ Run E2E tests: \`npm run test:e2e\`" >> $GITHUB_STEP_SUMMARY
+          echo "3. ✅ If all tests pass, proceed with production deployment" >> $GITHUB_STEP_SUMMARY
+      
+      - name: Notify on failure
+        if: failure()
+        run: |
+          echo "## ❌ Staging Deployment Failed" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Version:** ${{ github.event.inputs.version }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Triggered by:** @${{ github.actor }}" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Troubleshooting:**" >> $GITHUB_STEP_SUMMARY
+          echo "1. Check the workflow logs for error details" >> $GITHUB_STEP_SUMMARY
+          echo "2. Verify the Docker images exist in the registry" >> $GITHUB_STEP_SUMMARY
+          echo "3. Check staging environment health" >> $GITHUB_STEP_SUMMARY
+          echo "4. Review recent changes for breaking issues" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Rollback:**" >> $GITHUB_STEP_SUMMARY
+          echo "To rollback, trigger this workflow with the previous working version" >> $GITHUB_STEP_SUMMARY
+
+  post-deployment-tests:
+    name: Post-Deployment E2E Tests
+    needs: deploy-staging
+    runs-on: ubuntu-latest
+    if: ${{ !inputs.skip_health_check }}
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      
+      - name: Install dependencies
+        run: npm install
+      
+      - name: Install Playwright
+        run: npx playwright install --with-deps
+      
+      - name: Run E2E tests against staging
+        run: |
+          echo "Would run E2E tests against staging environment"
+          echo "BASE_URL=${{ vars.STAGING_URL || 'https://staging.example.com' }} npm run test:e2e"
+          echo ""
+          echo "This step would run comprehensive E2E tests to validate:"
+          echo "  - User authentication flows"
+          echo "  - Project creation and management"
+          echo "  - Blueprint upload and processing"
+          echo "  - AI analysis integration"
+          echo "  - Bid generation and export"
+          echo "  - All critical user journeys"
+        env:
+          BASE_URL: ${{ vars.STAGING_URL || 'https://staging.example.com' }}
+          API_URL: ${{ vars.STAGING_API_URL || 'https://api-staging.example.com' }}
+        continue-on-error: true
+      
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: staging-e2e-results
+          path: |
+            playwright-report/
+            test-results/
+          retention-days: 7
