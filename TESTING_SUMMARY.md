@@ -38,7 +38,18 @@ This document provides a complete guide to the testing capabilities implemented 
 
 #### Running E2E Tests
 
+**Prerequisites**: E2E tests require the full application stack to be running:
+- Frontend: `http://localhost:3000`
+- Backend API: `http://localhost:8080`
+- AI Service: `http://localhost:8000`
+- Database (PostgreSQL)
+- Redis
+- S3/MinIO
+
 ```bash
+# Start all services first
+make dev  # or docker-compose up
+
 # Install dependencies (first time)
 npm install
 npx playwright install --with-deps
@@ -58,6 +69,8 @@ npx playwright test e2e/complete-workflow.spec.ts
 # Debug mode
 npx playwright test --debug
 ```
+
+**CI/CD Note**: E2E tests in CI are configured with `continue-on-error: true` because they require the full stack. They execute but don't block builds. For reliable E2E testing, use a staging environment or run locally with all services.
 
 #### Test Statistics
 
@@ -261,10 +274,12 @@ The CI workflow (`.github/workflows/ci.yml`) includes:
 1. **lint-and-test-backend** - Go linting and unit tests
 2. **lint-and-test-ai-service** - Python linting and unit tests
 3. **lint-and-test-app** - TypeScript linting and unit tests
-4. **e2e-tests** - Playwright E2E tests
+4. **e2e-tests** - Playwright E2E tests (continue-on-error: requires full stack)
 5. **integration-tests-backend** - Go integration tests
 6. **integration-tests-ai-service** - Python integration tests
 7. **docker-build** - Docker image build tests
+
+**Note**: E2E tests are configured with `continue-on-error: true` because they require the full application stack (frontend, backend, AI service, database, Redis, S3) to be running. These tests are designed to run locally or in a full staging environment. They will execute in CI but won't block the build if they fail.
 
 #### Coverage Reporting
 
