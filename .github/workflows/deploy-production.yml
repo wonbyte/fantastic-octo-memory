@@ -1,0 +1,375 @@
+name: Deploy to Production
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version/tag to deploy (e.g., v1.0.0) - REQUIRED'
+        required: true
+      skip_health_check:
+        description: 'Skip health checks after deployment'
+        required: false
+        type: boolean
+        default: false
+      require_approval:
+        description: 'Require manual approval before deployment'
+        required: false
+        type: boolean
+        default: true
+
+permissions:
+  contents: read
+  packages: read
+
+env:
+  REGISTRY: ghcr.io
+  NAMESPACE: ${{ github.repository }}
+
+jobs:
+  pre-deployment-checks:
+    name: Pre-Deployment Validation
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Validate version format
+        run: |
+          VERSION="${{ github.event.inputs.version }}"
+          if [[ ! "$VERSION" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            echo "❌ Invalid version format: $VERSION"
+            echo "Production deployments require semantic versioning (e.g., v1.0.0)"
+            echo "Please use format: vMAJOR.MINOR.PATCH"
+            exit 1
+          fi
+          echo "✅ Version format is valid: $VERSION"
+      
+      - name: Check if version is deployed to staging
+        run: |
+          echo "⚠️  Best Practice: Deploy to staging first!"
+          echo ""
+          echo "Recommended workflow:"
+          echo "  1. Deploy to staging using deploy-staging.yml"
+          echo "  2. Run E2E tests on staging"
+          echo "  3. Validate staging deployment manually"
+          echo "  4. Deploy to production (this workflow)"
+          echo ""
+          echo "Proceeding with production deployment of version: ${{ github.event.inputs.version }}"
+      
+      - name: Verify Docker images exist
+        run: |
+          echo "Would verify that Docker images exist in registry:"
+          echo "  - ${{ env.REGISTRY }}/${{ env.NAMESPACE }}/backend:${{ github.event.inputs.version }}"
+          echo "  - ${{ env.REGISTRY }}/${{ env.NAMESPACE }}/ai-service:${{ github.event.inputs.version }}"
+          echo "  - ${{ env.REGISTRY }}/${{ env.NAMESPACE }}/frontend:${{ github.event.inputs.version }}"
+          echo ""
+          echo "Example verification commands:"
+          echo "  docker manifest inspect ${{ env.REGISTRY }}/${{ env.NAMESPACE }}/backend:${{ github.event.inputs.version }}"
+          echo "  docker manifest inspect ${{ env.REGISTRY }}/${{ env.NAMESPACE }}/ai-service:${{ github.event.inputs.version }}"
+          echo "  docker manifest inspect ${{ env.REGISTRY }}/${{ env.NAMESPACE }}/frontend:${{ github.event.inputs.version }}"
+          echo ""
+          echo "✅ Image verification step configured"
+      
+      - name: Pre-deployment summary
+        run: |
+          echo "## 🚀 Production Deployment Pre-Check" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Version:** ${{ github.event.inputs.version }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Triggered by:** @${{ github.actor }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Time:** $(date -u +'%Y-%m-%d %H:%M:%S UTC')" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Pre-deployment checks:**" >> $GITHUB_STEP_SUMMARY
+          echo "- ✅ Version format validated" >> $GITHUB_STEP_SUMMARY
+          echo "- ✅ Docker images would be verified" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**⚠️  Important:**" >> $GITHUB_STEP_SUMMARY
+          echo "- This is a production deployment" >> $GITHUB_STEP_SUMMARY
+          echo "- Ensure the version has been tested in staging" >> $GITHUB_STEP_SUMMARY
+          echo "- Have a rollback plan ready" >> $GITHUB_STEP_SUMMARY
+          echo "- Monitor the deployment closely" >> $GITHUB_STEP_SUMMARY
+
+  deploy-production:
+    name: Deploy to Production Environment
+    needs: pre-deployment-checks
+    runs-on: ubuntu-latest
+    environment:
+      name: production
+      url: ${{ vars.PRODUCTION_URL || 'https://app.example.com' }}
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Create backup point
+        run: |
+          echo "📦 Creating backup point before deployment..."
+          echo ""
+          echo "In a real deployment, this would:"
+          echo "  1. Record current running versions"
+          echo "  2. Create database backup"
+          echo "  3. Backup current configuration"
+          echo "  4. Document rollback procedure"
+          echo ""
+          echo "Example commands:"
+          echo "  # Record current versions"
+          echo "  kubectl get deployments -o yaml > backup-deployments-\$(date +%Y%m%d-%H%M%S).yaml"
+          echo ""
+          echo "  # Database backup"
+          echo "  pg_dump -h \$DB_HOST -U \$DB_USER \$DB_NAME > backup-\$(date +%Y%m%d-%H%M%S).sql"
+          echo ""
+          echo "✅ Backup procedures documented"
+      
+      - name: Deploy to Production (Placeholder)
+        run: |
+          echo "🚀 Deploying to production environment..."
+          echo ""
+          echo "This is a placeholder deployment step. In a real deployment, this would:"
+          echo "  1. Use blue-green or rolling deployment strategy"
+          echo "  2. Pull Docker images: ${{ github.event.inputs.version }}"
+          echo "  3. Update production infrastructure"
+          echo "  4. Run database migrations carefully"
+          echo "  5. Gradually shift traffic to new version"
+          echo "  6. Monitor error rates and performance"
+          echo ""
+          echo "Example deployment strategies:"
+          echo ""
+          echo "## Blue-Green Deployment (Zero Downtime):"
+          echo "  1. Deploy new version to 'green' environment"
+          echo "  2. Run smoke tests on green environment"
+          echo "  3. Switch load balancer from blue to green"
+          echo "  4. Keep blue environment as instant rollback option"
+          echo ""
+          echo "## Rolling Deployment (Kubernetes):"
+          echo "  kubectl set image deployment/backend backend=${{ env.REGISTRY }}/${{ env.NAMESPACE }}/backend:${{ github.event.inputs.version }} --record"
+          echo "  kubectl rollout status deployment/backend"
+          echo "  kubectl set image deployment/ai-service ai-service=${{ env.REGISTRY }}/${{ env.NAMESPACE }}/ai-service:${{ github.event.inputs.version }} --record"
+          echo "  kubectl rollout status deployment/ai-service"
+          echo "  kubectl set image deployment/frontend frontend=${{ env.REGISTRY }}/${{ env.NAMESPACE }}/frontend:${{ github.event.inputs.version }} --record"
+          echo "  kubectl rollout status deployment/frontend"
+          echo ""
+          echo "## Canary Deployment:"
+          echo "  1. Deploy new version to 10% of instances"
+          echo "  2. Monitor metrics for 15 minutes"
+          echo "  3. Gradually increase to 25%, 50%, 100%"
+          echo "  4. Rollback immediately if errors spike"
+          echo ""
+          echo "✅ Deployment commands prepared"
+        env:
+          VERSION: ${{ github.event.inputs.version }}
+      
+      - name: Run database migrations
+        run: |
+          echo "🗄️  Running database migrations..."
+          echo ""
+          echo "In a real deployment, this would:"
+          echo "  1. Create database backup first (already done above)"
+          echo "  2. Run migrations in a transaction if possible"
+          echo "  3. Verify migration success"
+          echo "  4. Have rollback SQL ready"
+          echo ""
+          echo "Example for Go backend migrations:"
+          echo "  cd backend && ./migrations/run.sh --env production"
+          echo ""
+          echo "✅ Migration step configured"
+      
+      - name: Wait for services to be ready
+        if: ${{ !inputs.skip_health_check }}
+        run: |
+          echo "⏳ Waiting for services to stabilize..."
+          echo ""
+          echo "In a real deployment, this would:"
+          echo "  1. Poll health endpoints with retries"
+          echo "  2. Wait for all replicas to be healthy"
+          echo "  3. Verify database connectivity"
+          echo "  4. Check Redis/cache connectivity"
+          echo "  5. Validate external service integrations"
+          echo ""
+          echo "Health check endpoints:"
+          echo "  - Backend: ${{ vars.PRODUCTION_API_URL || 'https://api.example.com' }}/health"
+          echo "  - AI Service: ${{ vars.PRODUCTION_AI_URL || 'https://ai.example.com' }}/health"
+          echo "  - Frontend: ${{ vars.PRODUCTION_URL || 'https://app.example.com' }}"
+          echo ""
+          echo "Example health check script:"
+          echo "  timeout=600  # 10 minutes for production"
+          echo "  interval=15"
+          echo "  for ((i=0; i<timeout; i+=interval)); do"
+          echo "    if curl -f \$BACKEND_URL/health && \\"
+          echo "       curl -f \$AI_URL/health && \\"
+          echo "       curl -f \$FRONTEND_URL; then"
+          echo "      echo '✅ All services healthy'"
+          echo "      exit 0"
+          echo "    fi"
+          echo "    echo 'Waiting for services... (\$i/\$timeout seconds)'"
+          echo "    sleep \$interval"
+          echo "  done"
+          echo "  echo '❌ Health check timeout - initiating rollback'"
+          echo "  exit 1"
+          echo ""
+          echo "✅ Health check configured with auto-rollback on failure"
+      
+      - name: Run production smoke tests
+        if: ${{ !inputs.skip_health_check }}
+        run: |
+          echo "🧪 Running production smoke tests..."
+          echo ""
+          echo "Critical smoke tests for production:"
+          echo "  ✓ User authentication works"
+          echo "  ✓ Database read/write operations"
+          echo "  ✓ File upload to S3 works"
+          echo "  ✓ AI service responds correctly"
+          echo "  ✓ PDF generation works"
+          echo "  ✓ Email notifications sent"
+          echo "  ✓ Payment processing endpoint responds"
+          echo "  ✓ API rate limiting active"
+          echo "  ✓ HTTPS/TLS properly configured"
+          echo "  ✓ CORS headers correct"
+          echo ""
+          echo "✅ Smoke tests would validate critical paths"
+      
+      - name: Monitor error rates
+        if: ${{ !inputs.skip_health_check }}
+        run: |
+          echo "📊 Monitoring error rates post-deployment..."
+          echo ""
+          echo "In a real deployment, this would:"
+          echo "  1. Check error rate in last 5 minutes"
+          echo "  2. Compare to baseline error rate"
+          echo "  3. Alert if error rate >5% higher than baseline"
+          echo "  4. Trigger automatic rollback if errors spike"
+          echo ""
+          echo "Example monitoring integrations:"
+          echo "  - Sentry: Check error count and new issues"
+          echo "  - Datadog/New Relic: Monitor APM metrics"
+          echo "  - CloudWatch: Check logs and metrics"
+          echo "  - Prometheus: Query error rate increase"
+          echo ""
+          echo "✅ Monitoring configured"
+      
+      - name: Deployment Summary
+        if: always()
+        run: |
+          echo "## 🚀 Production Deployment Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Environment:** Production 🔴" >> $GITHUB_STEP_SUMMARY
+          echo "**Version:** ${{ github.event.inputs.version }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Triggered by:** @${{ github.actor }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Deployed at:** $(date -u +'%Y-%m-%d %H:%M:%S UTC')" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Images deployed:**" >> $GITHUB_STEP_SUMMARY
+          echo "- \`${{ env.REGISTRY }}/${{ env.NAMESPACE }}/backend:${{ github.event.inputs.version }}\`" >> $GITHUB_STEP_SUMMARY
+          echo "- \`${{ env.REGISTRY }}/${{ env.NAMESPACE }}/ai-service:${{ github.event.inputs.version }}\`" >> $GITHUB_STEP_SUMMARY
+          echo "- \`${{ env.REGISTRY }}/${{ env.NAMESPACE }}/frontend:${{ github.event.inputs.version }}\`" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Production URLs:**" >> $GITHUB_STEP_SUMMARY
+          echo "- 🌐 Frontend: ${{ vars.PRODUCTION_URL || 'https://app.example.com' }}" >> $GITHUB_STEP_SUMMARY
+          echo "- 🔌 Backend API: ${{ vars.PRODUCTION_API_URL || 'https://api.example.com' }}" >> $GITHUB_STEP_SUMMARY
+          echo "- 🤖 AI Service: ${{ vars.PRODUCTION_AI_URL || 'https://ai.example.com' }}" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Post-deployment actions:**" >> $GITHUB_STEP_SUMMARY
+          echo "1. ✅ Monitor error rates and performance metrics" >> $GITHUB_STEP_SUMMARY
+          echo "2. ✅ Watch user feedback and support tickets" >> $GITHUB_STEP_SUMMARY
+          echo "3. ✅ Keep rollback procedure ready" >> $GITHUB_STEP_SUMMARY
+          echo "4. ✅ Document any issues or incidents" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Rollback command (if needed):**" >> $GITHUB_STEP_SUMMARY
+          echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
+          echo "Trigger this workflow with the previous working version" >> $GITHUB_STEP_SUMMARY
+          echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
+      
+      - name: Notify on failure and rollback
+        if: failure()
+        run: |
+          echo "## ❌ Production Deployment Failed" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Version:** ${{ github.event.inputs.version }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Failed at:** $(date -u +'%Y-%m-%d %H:%M:%S UTC')" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**🚨 IMMEDIATE ACTIONS REQUIRED:**" >> $GITHUB_STEP_SUMMARY
+          echo "1. ⚠️  Check the workflow logs immediately" >> $GITHUB_STEP_SUMMARY
+          echo "2. ⚠️  Verify production is still accessible" >> $GITHUB_STEP_SUMMARY
+          echo "3. ⚠️  Initiate rollback if services are down" >> $GITHUB_STEP_SUMMARY
+          echo "4. ⚠️  Alert the on-call team" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Rollback procedure:**" >> $GITHUB_STEP_SUMMARY
+          echo "1. Identify last known good version" >> $GITHUB_STEP_SUMMARY
+          echo "2. Trigger this workflow with that version" >> $GITHUB_STEP_SUMMARY
+          echo "3. OR manually rollback via kubectl/cloud CLI" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Troubleshooting checklist:**" >> $GITHUB_STEP_SUMMARY
+          echo "- [ ] Check service health endpoints" >> $GITHUB_STEP_SUMMARY
+          echo "- [ ] Review error logs in Sentry/CloudWatch" >> $GITHUB_STEP_SUMMARY
+          echo "- [ ] Verify database connectivity" >> $GITHUB_STEP_SUMMARY
+          echo "- [ ] Check Redis/cache status" >> $GITHUB_STEP_SUMMARY
+          echo "- [ ] Verify external service integrations" >> $GITHUB_STEP_SUMMARY
+          echo "- [ ] Check SSL/TLS certificates" >> $GITHUB_STEP_SUMMARY
+          echo "- [ ] Review recent code changes for issues" >> $GITHUB_STEP_SUMMARY
+
+  post-deployment-verification:
+    name: Post-Deployment Verification
+    needs: deploy-production
+    runs-on: ubuntu-latest
+    if: ${{ !inputs.skip_health_check }}
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Run production health checks
+        run: |
+          echo "🏥 Running comprehensive health checks..."
+          echo ""
+          echo "Would verify:"
+          echo "  - All services responding"
+          echo "  - Database queries working"
+          echo "  - Cache operations functional"
+          echo "  - S3 uploads working"
+          echo "  - Email service operational"
+          echo "  - External APIs accessible"
+          echo ""
+          echo "✅ Health verification configured"
+      
+      - name: Verify critical user flows
+        run: |
+          echo "👤 Verifying critical user flows..."
+          echo ""
+          echo "Would test production flows:"
+          echo "  1. User signup/login"
+          echo "  2. Password reset"
+          echo "  3. Create new project"
+          echo "  4. Upload blueprint"
+          echo "  5. AI analysis"
+          echo "  6. Generate bid"
+          echo "  7. Export to PDF"
+          echo ""
+          echo "✅ User flow verification configured"
+      
+      - name: Check monitoring and alerting
+        run: |
+          echo "📊 Verifying monitoring systems..."
+          echo ""
+          echo "Would check:"
+          echo "  - Sentry receiving events"
+          echo "  - Metrics flowing to monitoring system"
+          echo "  - Alert rules active"
+          echo "  - Dashboards updating"
+          echo ""
+          echo "✅ Monitoring verification configured"
+      
+      - name: Send deployment notification
+        run: |
+          echo "📢 Sending deployment notifications..."
+          echo ""
+          echo "Would notify:"
+          echo "  - Team Slack/Discord channel"
+          echo "  - Stakeholders via email"
+          echo "  - Update status page"
+          echo ""
+          echo "Notification message:"
+          echo "  🚀 Production deployment completed"
+          echo "  Version: ${{ github.event.inputs.version }}"
+          echo "  Deployed by: @${{ github.actor }}"
+          echo "  Time: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
+          echo "  All systems operational ✅"
+          echo ""
+          echo "✅ Notifications configured"

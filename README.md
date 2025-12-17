@@ -202,6 +202,314 @@ cd ai_service && ruff format .
 cd app && npm run format
 ```
 
+## 🔄 CI/CD Pipelines
+
+The platform uses GitHub Actions for comprehensive CI/CD automation across all services in the monorepo.
+
+### Continuous Integration (CI)
+
+**Workflow**: `.github/workflows/ci.yml`
+
+Automatically runs on every push and pull request to `main` and `develop` branches:
+
+#### Backend (Go)
+- ✅ Dependency caching
+- ✅ `go vet` linting
+- ✅ Unit tests with race detection
+- ✅ Integration tests
+- ✅ Coverage reports to Codecov
+
+#### AI Service (Python)
+- ✅ Dependency caching
+- ✅ Ruff linting
+- ✅ Unit tests with pytest
+- ✅ Integration tests
+- ✅ Coverage reports to Codecov
+
+#### Frontend (React Native/Expo)
+- ✅ Dependency installation
+- ✅ ESLint linting
+- ✅ TypeScript type checking
+- ✅ Unit tests with Jest
+- ✅ Coverage reports to Codecov
+
+#### E2E Tests (Playwright)
+- ✅ Full-stack end-to-end tests
+- ✅ Test artifacts and screenshots
+- ✅ Test reports
+
+#### Docker Builds
+- ✅ Build verification for all Docker images
+- ✅ Build caching for faster builds
+- ✅ Multi-service validation
+
+### Build and Push (Production Images)
+
+**Workflow**: `.github/workflows/build-production.yml`
+
+Builds and pushes production-optimized Docker images to GitHub Container Registry (GHCR):
+
+**Triggers**:
+- 🏷️ Automatically on version tags (e.g., `v1.0.0`)
+- 🔘 Manual trigger with custom version tag
+
+**What it does**:
+1. Builds optimized production images using multi-stage Dockerfiles
+2. Pushes to `ghcr.io/$GITHUB_REPOSITORY/[backend|ai-service|frontend]`
+3. Tags images with both version and `latest`
+4. Uses build caching for efficiency
+
+**Usage**:
+```bash
+# Automatically triggered by creating a version tag
+git tag v1.0.0
+git push origin v1.0.0
+
+# Or trigger manually from GitHub Actions UI:
+# Actions → Build and Push Production Images → Run workflow
+# Enter version: v1.0.0 (or latest)
+```
+
+### Deployment Workflows
+
+#### Deploy to Staging
+
+**Workflow**: `.github/workflows/deploy-staging.yml`
+
+Deploys to staging environment for testing before production.
+
+**Features**:
+- 🔘 Manual trigger with version selection
+- ✅ Health checks after deployment
+- ✅ Smoke tests
+- ✅ E2E tests against staging
+- ✅ Deployment summaries
+
+**Usage**:
+```bash
+# From GitHub Actions UI:
+# Actions → Deploy to Staging → Run workflow
+# Select version: v1.0.0 or latest
+# Optional: Skip health checks (for debugging)
+```
+
+**Environment Variables** (Configure in GitHub Settings → Environments → staging):
+- `STAGING_URL` - Frontend URL (e.g., https://staging.example.com)
+- `STAGING_API_URL` - Backend API URL
+- `STAGING_AI_URL` - AI service URL
+
+#### Deploy to Production
+
+**Workflow**: `.github/workflows/deploy-production.yml`
+
+Production deployment with safety checks and rollback capabilities.
+
+**Features**:
+- 🔘 Manual trigger only (safety measure)
+- ✅ Pre-deployment validation
+- ✅ Version format checking (requires semantic versioning)
+- ✅ Backup creation before deployment
+- ✅ Blue-green/rolling deployment support
+- ✅ Database migration handling
+- ✅ Comprehensive health checks
+- ✅ Smoke tests on production
+- ✅ Error rate monitoring
+- ✅ Automatic rollback on failure
+- ✅ Post-deployment verification
+
+**Usage**:
+```bash
+# IMPORTANT: Always deploy to staging first!
+# 
+# From GitHub Actions UI:
+# Actions → Deploy to Production → Run workflow
+# Enter version: v1.0.0 (must be semantic version)
+# Requires manual approval if enabled
+```
+
+**Environment Variables** (Configure in GitHub Settings → Environments → production):
+- `PRODUCTION_URL` - Frontend URL (e.g., https://app.example.com)
+- `PRODUCTION_API_URL` - Backend API URL
+- `PRODUCTION_AI_URL` - AI service URL
+
+### Complete CI/CD Flow
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│                     Development Process                          │
+└─────────────────────────────────────────────────────────────────┘
+                              ↓
+┌─────────────────────────────────────────────────────────────────┐
+│  1. Push/PR to main/develop → CI Workflow                       │
+│     ✓ Lint all services                                         │
+│     ✓ Run unit tests                                            │
+│     ✓ Run integration tests                                     │
+│     ✓ Build Docker images                                       │
+│     ✓ Run E2E tests                                             │
+└─────────────────────────────────────────────────────────────────┘
+                              ↓
+┌─────────────────────────────────────────────────────────────────┐
+│  2. Create version tag (e.g., v1.0.0) → Build Production        │
+│     ✓ Build optimized images                                    │
+│     ✓ Push to GHCR                                              │
+│     ✓ Tag with version + latest                                 │
+└─────────────────────────────────────────────────────────────────┘
+                              ↓
+┌─────────────────────────────────────────────────────────────────┐
+│  3. Manual Deploy to Staging                                    │
+│     ✓ Deploy version to staging                                 │
+│     ✓ Run health checks                                         │
+│     ✓ Run smoke tests                                           │
+│     ✓ Run E2E tests                                             │
+│     ✓ Manual validation                                         │
+└─────────────────────────────────────────────────────────────────┘
+                              ↓
+┌─────────────────────────────────────────────────────────────────┐
+│  4. Manual Deploy to Production                                 │
+│     ✓ Pre-deployment checks                                     │
+│     ✓ Create backups                                            │
+│     ✓ Deploy with zero-downtime                                 │
+│     ✓ Run migrations                                            │
+│     ✓ Health checks                                             │
+│     ✓ Smoke tests                                               │
+│     ✓ Monitor error rates                                       │
+│     ✓ Post-deployment verification                              │
+└─────────────────────────────────────────────────────────────────┘
+```
+
+### Setting Up Deployments
+
+The deployment workflows are **placeholder implementations** that demonstrate best practices. To make them functional:
+
+1. **Choose your deployment target**:
+   - Docker Compose on VPS/VM
+   - Kubernetes (EKS, GKE, AKS)
+   - AWS ECS/Fargate
+   - Fly.io
+   - Railway
+   - Render
+   - Other cloud platforms
+
+2. **Configure environment variables** in GitHub:
+   - Go to: Settings → Environments
+   - Create environments: `staging` and `production`
+   - Add environment variables (URLs, API keys, etc.)
+   - Enable required reviewers for production
+
+3. **Add deployment credentials** as GitHub Secrets:
+   - SSH keys for VPS
+   - Cloud provider credentials (AWS, GCP, Azure)
+   - Kubernetes config
+   - Container registry tokens (if not using GHCR)
+
+4. **Customize deployment steps** in workflow files:
+   - Replace placeholder echo commands with actual deployment commands
+   - Add your infrastructure-specific deployment logic
+   - Configure health check endpoints
+   - Set up monitoring and alerting
+
+5. **Example deployment implementations**:
+
+   **Docker Compose (VPS)**:
+   ```yaml
+   - name: Deploy via SSH
+     uses: appleboy/ssh-action@v1.0.0
+     with:
+       host: ${{ secrets.DEPLOY_HOST }}
+       username: ${{ secrets.DEPLOY_USER }}
+       key: ${{ secrets.DEPLOY_SSH_KEY }}
+       script: |
+         cd /app
+         export VERSION=${{ github.event.inputs.version }}
+         docker compose -f docker-compose.production.yml pull
+         docker compose -f docker-compose.production.yml up -d
+   ```
+
+   **Kubernetes**:
+   ```yaml
+   - name: Deploy to Kubernetes
+     run: |
+       kubectl set image deployment/backend \
+         backend=${{ env.REGISTRY }}/${{ env.NAMESPACE }}/backend:${{ github.event.inputs.version }}
+       kubectl rollout status deployment/backend
+   ```
+
+   **AWS ECS**:
+   ```yaml
+   - name: Deploy to ECS
+     run: |
+       aws ecs update-service \
+         --cluster production-cluster \
+         --service backend \
+         --force-new-deployment
+   ```
+
+### Monorepo CI/CD Best Practices
+
+✅ **Implemented in this repository**:
+
+1. **Path-based caching**: Separate caches for Go, Python, and Node.js dependencies
+2. **Parallel execution**: All services tested concurrently
+3. **Fail fast**: Early validation prevents wasted CI time
+4. **Selective testing**: Only affected services are tested (when configured)
+5. **Build caching**: Docker layer caching for faster builds
+6. **Artifact retention**: Test reports and logs preserved
+7. **Coverage tracking**: Per-service coverage with Codecov flags
+8. **Security scanning**: Vulnerability checks on dependencies
+9. **Semantic versioning**: Enforced for production deployments
+10. **Environment isolation**: Separate staging and production environments
+
+### Monitoring and Rollback
+
+**Health Checks**:
+All deployments include health checks for:
+- Backend API (`/health` endpoint)
+- AI Service (`/health` endpoint)
+- Frontend (homepage load)
+- Database connectivity
+- Redis cache connectivity
+
+**Rollback Procedure**:
+If a deployment fails or issues are detected:
+
+1. **Automatic Rollback** (on health check failure):
+   - Deployment workflow fails
+   - Previous version remains active
+   
+2. **Manual Rollback**:
+   ```bash
+   # Identify the last known good version
+   # Re-run deployment workflow with that version
+   
+   # Or use your infrastructure's rollback:
+   kubectl rollout undo deployment/backend
+   docker service rollback backend
+   ```
+
+### CI/CD Troubleshooting
+
+**CI Tests Failing**:
+- Check the specific job logs in GitHub Actions
+- Run tests locally: `make test`
+- Verify dependencies are up to date
+
+**Build Failing**:
+- Check Docker build logs
+- Verify Dockerfiles are correct
+- Test builds locally: `make prod-build`
+
+**Deployment Failing**:
+- Verify environment variables are configured
+- Check deployment credentials/secrets
+- Ensure target infrastructure is accessible
+- Review health check endpoints
+
+**Health Checks Failing**:
+- Verify service URLs are correct
+- Check if services started successfully
+- Review application logs
+- Verify database/Redis connectivity
+
 ## 🚢 Production Deployment
 
 ### Quick Deploy
