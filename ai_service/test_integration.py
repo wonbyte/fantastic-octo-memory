@@ -4,8 +4,6 @@ Tests complete workflows with external dependencies
 """
 import pytest
 from fastapi.testclient import TestClient
-from unittest.mock import Mock, patch
-import io
 
 try:
     from app.main import app
@@ -300,7 +298,7 @@ class TestPerformanceIntegration:
     def test_memory_usage_stable(self):
         """Test that memory usage remains stable across requests"""
         # Make multiple requests to check for memory leaks
-        for i in range(10):
+        for _ in range(10):
             response = client.get("/health")
             assert response.status_code == 200
 
