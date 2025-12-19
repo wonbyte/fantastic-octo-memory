@@ -1,0 +1,89 @@
+repos:
+  # Pre-commit hooks
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v4.6.0
+    hooks:
+      - id: trailing-whitespace
+        exclude: '\.md$'
+      - id: end-of-file-fixer
+        exclude: '\.md$|\.json$'
+      - id: check-yaml
+        args: ['--safe']
+      - id: check-added-large-files
+        args: ['--maxkb=1000']
+      - id: check-json
+      - id: check-merge-conflict
+      - id: check-case-conflict
+      - id: detect-private-key
+      - id: mixed-line-ending
+        args: ['--fix=lf']
+
+  # Go formatting and linting
+  - repo: https://github.com/dnephin/pre-commit-golang
+    rev: v0.5.1
+    hooks:
+      - id: go-fmt
+        args: ['-w']
+      - id: go-vet
+      - id: go-mod-tidy
+        files: 'backend/go\.(mod|sum)$'
+        pass_filenames: false
+
+  # Python linting and formatting with Ruff
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.6.8
+    hooks:
+      - id: ruff
+        args: ['--fix']
+        files: 'ai_service/.*\.py$'
+      - id: ruff-format
+        files: 'ai_service/.*\.py$'
+
+  # JavaScript/TypeScript linting
+  - repo: https://github.com/pre-commit/mirrors-eslint
+    rev: v9.16.0
+    hooks:
+      - id: eslint
+        files: 'app/.*\.(js|jsx|ts|tsx)$'
+        args: ['--fix']
+        additional_dependencies:
+          - eslint@9.16.0
+          - '@eslint/js@9.39.1'
+          - typescript-eslint@8.17.0
+          - eslint-plugin-react@7.37.5
+          - eslint-plugin-react-hooks@7.0.1
+
+  # Markdown linting
+  - repo: https://github.com/markdownlint/markdownlint
+    rev: v0.12.0
+    hooks:
+      - id: markdownlint
+        args: ['--fix']
+        exclude: 'node_modules'
+
+  # YAML linting
+  - repo: https://github.com/adrienverge/yamllint
+    rev: v1.35.1
+    hooks:
+      - id: yamllint
+        args: ['-c', '.yamllint.yml']
+
+  # Docker linting
+  - repo: https://github.com/hadolint/hadolint
+    rev: v2.12.1-beta
+    hooks:
+      - id: hadolint-docker
+        args: ['--ignore', 'DL3008', '--ignore', 'DL3018']
+
+  # Secret detection
+  - repo: https://github.com/gitleaks/gitleaks
+    rev: v8.20.1
+    hooks:
+      - id: gitleaks
+
+  # Shell script linting
+  - repo: https://github.com/shellcheck-py/shellcheck-py
+    rev: v0.10.0.1
+    hooks:
+      - id: shellcheck
+        args: ['--severity=warning']

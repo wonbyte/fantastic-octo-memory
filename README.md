@@ -1,5 +1,13 @@
 # Construction Estimation & Bidding Automation SaaS Platform
 
+[![CI Status](https://github.com/wonbyte/fantastic-octo-memory/workflows/CI/badge.svg)](https://github.com/wonbyte/fantastic-octo-memory/actions/workflows/ci.yml)
+[![codecov](https://codecov.io/gh/wonbyte/fantastic-octo-memory/branch/main/graph/badge.svg)](https://codecov.io/gh/wonbyte/fantastic-octo-memory)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![Go Version](https://img.shields.io/badge/Go-1.25+-00ADD8?logo=go)](https://golang.org/)
+[![Python Version](https://img.shields.io/badge/Python-3.12+-3776AB?logo=python)](https://www.python.org/)
+[![Node Version](https://img.shields.io/badge/Node-22_LTS-339933?logo=node.js)](https://nodejs.org/)
+[![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](CONTRIBUTING.md)
+
 A comprehensive platform for automating construction estimation and bidding processes, built as a modern cloud-native application with AI-powered capabilities.
 
 ## 🏗️ Project Overview
@@ -59,19 +67,24 @@ This platform streamlines the construction bidding process by:
 
 ### Running the Platform
 
-1. **Clone the repository**
+1. **Validate your setup (recommended)**
+   ```bash
+   ./scripts/validate-setup.sh
+   ```
+
+2. **Clone the repository**
    ```bash
    git clone https://github.com/wonbyte/fantastic-octo-memory.git
    cd fantastic-octo-memory
    ```
 
-2. **Set up environment variables**
+3. **Set up environment variables**
    ```bash
    cp .env.example .env
    # Edit .env with your configuration
    ```
 
-3. **Start all services**
+4. **Start all services**
    ```bash
    make dev
    ```
@@ -687,14 +700,44 @@ For detailed documentation, see [BID_EXPORT_GUIDE.md](./BID_EXPORT_GUIDE.md)
 
 ## 🤝 Contributing
 
-1. Create a feature branch from `main`
-2. Make your changes
-3. Ensure all tests pass
-4. Submit a pull request
+We welcome contributions! Please see our [Contributing Guidelines](CONTRIBUTING.md) for details on:
+- Code of conduct
+- Development setup
+- Coding standards
+- Commit message conventions
+- Pull request process
+
+Quick start for contributors:
+```bash
+# Fork the repository and clone your fork
+git clone https://github.com/YOUR-USERNAME/fantastic-octo-memory.git
+
+# Install pre-commit hooks (recommended)
+pip install pre-commit
+pre-commit install
+
+# Create a feature branch
+git checkout -b feature/your-feature-name
+
+# Make your changes and commit
+git commit -m "feat: add amazing feature"
+
+# Push and create a pull request
+git push origin feature/your-feature-name
+```
+
+## 🔒 Security
+
+Security is a top priority. Please see our [Security Policy](SECURITY.md) for:
+- Reporting vulnerabilities
+- Security best practices
+- Supported versions
+
+If you discover a security vulnerability, please report it responsibly through our [Security Advisory](https://github.com/wonbyte/fantastic-octo-memory/security) page.
 
 ## 📄 License
 
-[Your License Here]
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
 ## 🆘 Support
 
@@ -702,12 +745,17 @@ For issues and questions, please open a GitHub issue.
 
 ## 📚 Additional Documentation
 
+- [CODE_QUALITY_ANALYSIS.md](./CODE_QUALITY_ANALYSIS.md) - Comprehensive code quality analysis and recommendations
+- [CONTRIBUTING.md](./CONTRIBUTING.md) - Contribution guidelines
+- [SECURITY.md](./SECURITY.md) - Security policy and vulnerability reporting
+- [CHANGELOG.md](./CHANGELOG.md) - Version history and release notes
 - [BID_EXPORT_GUIDE.md](./BID_EXPORT_GUIDE.md) - Comprehensive bid export and download guide
 - [DEPLOYMENT.md](./DEPLOYMENT.md) - Production deployment guide
 - [E2E_TESTING.md](./E2E_TESTING.md) - End-to-end testing guide
 - [M5_IMPLEMENTATION_SUMMARY.md](./M5_IMPLEMENTATION_SUMMARY.md) - Milestone 5 summary
 - [M6_IMPLEMENTATION_SUMMARY.md](./M6_IMPLEMENTATION_SUMMARY.md) - Milestone 6 summary
 - [M7_IMPLEMENTATION_SUMMARY.md](./M7_IMPLEMENTATION_SUMMARY.md) - Milestone 7 summary
+- [M7_SECURITY_HARDENING.md](./M7_SECURITY_HARDENING.md) - Security hardening details
 - [backend/README.md](./backend/README.md) - Backend service documentation
 - [ai_service/README.md](./ai_service/README.md) - AI service documentation (if exists)
 - [app/README.md](./app/README.md) - Frontend application documentation
