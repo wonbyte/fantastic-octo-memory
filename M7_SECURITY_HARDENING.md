@@ -91,7 +91,7 @@ MAX_REQUEST_BODY_BYTES=10485760  # 10MB
 
 **Configuration:**
 ```bash
-CORS_ALLOWED_ORIGINS=http://localhost:3000,http://localhost:19006
+CORS_ALLOWED_ORIGINS=http://localhost:8080,http://localhost:19006
 ```
 
 **Files:**
@@ -136,7 +136,7 @@ RATE_LIMIT_USER_REQUESTS_PER_MIN=200
 ENABLE_SECURITY_HEADERS=true
 
 # CORS allows localhost
-CORS_ALLOWED_ORIGINS=http://localhost:3000,http://localhost:19006
+CORS_ALLOWED_ORIGINS=http://localhost:8080,http://localhost:19006
 ```
 
 ### Production Environment
