@@ -77,15 +77,15 @@ This platform streamlines the construction bidding process by:
    ```
 
    This will start:
-   - Backend API at http://localhost:8080
+   - Backend API at http://localhost:8081
    - AI Service at http://localhost:8000
-   - Frontend at http://localhost:3000
+   - Frontend at http://localhost:8080
    - PostgreSQL at localhost:5432
    - Redis at localhost:6379
 
 4. **Access the application**
-   - Web App: http://localhost:3000
-   - Backend API: http://localhost:8080
+   - Web App: http://localhost:8080
+   - Backend API: http://localhost:8081
    - AI Service: http://localhost:8000
    - API Docs: http://localhost:8000/docs (FastAPI)
 

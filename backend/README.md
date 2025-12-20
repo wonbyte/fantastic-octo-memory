@@ -78,7 +78,7 @@ docker compose up backend
    go run cmd/server/main.go
    ```
 
-The server will start on `http://localhost:8080`
+The server will start on `http://localhost:8080` (or port 8081 when running with docker-compose for development)
 
 ## API Endpoints
 

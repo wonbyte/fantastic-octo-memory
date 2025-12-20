@@ -70,7 +70,7 @@ npm run web
 Copy `.env.example` to `.env` and configure:
 
 ```env
-EXPO_PUBLIC_API_URL=http://localhost:8080
+EXPO_PUBLIC_API_URL=http://localhost:8081
 EXPO_PUBLIC_ENV=development
 ```
 
@@ -175,7 +175,7 @@ make dev
 ```
 
 Access the app at:
-- Web: http://localhost:3000
+- Web: http://localhost:8080
 - Metro: http://localhost:19000
 
 ## 🔧 Configuration Files
@@ -272,7 +272,7 @@ npm run type-check
 
 ### Docker networking issues
 Ensure the API URL is set correctly:
-- Local dev: `http://localhost:8080`
+- Local dev: `http://localhost:8081`
 - Docker: `http://backend:8080`
 
 ## 📞 Support

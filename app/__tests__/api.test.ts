@@ -9,7 +9,7 @@ jest.mock('expo-secure-store', () => ({
 
 describe('API Client', () => {
   it('has correct base URL', () => {
-    expect(apiClient.defaults.baseURL).toBe('http://localhost:8080');
+    expect(apiClient.defaults.baseURL).toBe('http://localhost:8081');
   });
 
   it('has correct timeout', () => {

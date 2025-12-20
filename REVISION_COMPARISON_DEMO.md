@@ -45,7 +45,7 @@ cd backend && ./seed.sh
 BLUEPRINT_ID="your-blueprint-id-here"
 
 # Create a revision snapshot
-curl -X POST http://localhost:8080/blueprints/$BLUEPRINT_ID/revisions \
+curl -X POST http://localhost:8081/blueprints/$BLUEPRINT_ID/revisions \
   -H "Authorization: Bearer YOUR_JWT_TOKEN" \
   -H "Content-Type: application/json"
 ```
@@ -126,7 +126,7 @@ Changes by Category:
 ### List Blueprint Revisions
 
 ```bash
-curl -X GET http://localhost:8080/blueprints/$BLUEPRINT_ID/revisions \
+curl -X GET http://localhost:8081/blueprints/$BLUEPRINT_ID/revisions \
   -H "Authorization: Bearer YOUR_JWT_TOKEN"
 ```
 
@@ -161,7 +161,7 @@ Expected Response:
 ### Compare Revisions
 
 ```bash
-curl -X GET "http://localhost:8080/blueprints/$BLUEPRINT_ID/compare?from=1&to=2" \
+curl -X GET "http://localhost:8081/blueprints/$BLUEPRINT_ID/compare?from=1&to=2" \
   -H "Authorization: Bearer YOUR_JWT_TOKEN"
 ```
 

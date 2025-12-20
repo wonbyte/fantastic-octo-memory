@@ -322,7 +322,7 @@ The difference is in presentation and use case optimization.
 
 ```bash
 # 1. Generate a test bid
-curl -X POST "http://localhost:8080/projects/{project-id}/generate-bid" \
+curl -X POST "http://localhost:8081/projects/{project-id}/generate-bid" \
   -H "Authorization: Bearer $TOKEN" \
   -H "Content-Type: application/json" \
   -d '{
@@ -333,16 +333,16 @@ curl -X POST "http://localhost:8080/projects/{project-id}/generate-bid" \
   }'
 
 # 2. Get PDF URL
-curl -X GET "http://localhost:8080/bids/{bid-id}/pdf" \
+curl -X GET "http://localhost:8081/bids/{bid-id}/pdf" \
   -H "Authorization: Bearer $TOKEN"
 
 # 3. Download CSV
-curl -X GET "http://localhost:8080/bids/{bid-id}/csv" \
+curl -X GET "http://localhost:8081/bids/{bid-id}/csv" \
   -H "Authorization: Bearer $TOKEN" \
   -o test-bid.csv
 
 # 4. Download Excel
-curl -X GET "http://localhost:8080/bids/{bid-id}/excel" \
+curl -X GET "http://localhost:8081/bids/{bid-id}/excel" \
   -H "Authorization: Bearer $TOKEN" \
   -o test-bid-excel.csv
 
@@ -405,10 +405,10 @@ const options = {
 
 ```bash
 # Export all bids for a project
-for bid_id in $(curl "http://localhost:8080/projects/{id}/bids" | jq -r '.[].id'); do
+for bid_id in $(curl "http://localhost:8081/projects/{id}/bids" | jq -r '.[].id'); do
   echo "Exporting bid: $bid_id"
-  curl "http://localhost:8080/bids/$bid_id/pdf" -o "bid-$bid_id.pdf"
-  curl "http://localhost:8080/bids/$bid_id/csv" -o "bid-$bid_id.csv"
+  curl "http://localhost:8081/bids/$bid_id/pdf" -o "bid-$bid_id.pdf"
+  curl "http://localhost:8081/bids/$bid_id/csv" -o "bid-$bid_id.csv"
 done
 ```
 

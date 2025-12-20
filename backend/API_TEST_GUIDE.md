@@ -26,7 +26,7 @@ psql -h localhost -p 5432 -U platform_user -d construction_platform -c "SELECT i
 ### Step 2: Request Upload URL
 
 ```bash
-curl -X POST http://localhost:8080/projects/$PROJECT_ID/blueprints/upload-url \
+curl -X POST http://localhost:8081/projects/$PROJECT_ID/blueprints/upload-url \
   -H 'Content-Type: application/json' \
   -d '{
     "filename": "test-blueprint.pdf",
@@ -67,7 +67,7 @@ curl -X PUT "$UPLOAD_URL" \
 ### Step 5: Complete Upload
 
 ```bash
-curl -X POST http://localhost:8080/blueprints/$BLUEPRINT_ID/complete-upload | jq
+curl -X POST http://localhost:8081/blueprints/$BLUEPRINT_ID/complete-upload | jq
 
 # Expected response:
 # {
@@ -80,7 +80,7 @@ curl -X POST http://localhost:8080/blueprints/$BLUEPRINT_ID/complete-upload | jq
 ### Step 6: Start Analysis
 
 ```bash
-curl -X POST http://localhost:8080/blueprints/$BLUEPRINT_ID/analyze | jq
+curl -X POST http://localhost:8081/blueprints/$BLUEPRINT_ID/analyze | jq
 
 # Expected response:
 # {
@@ -98,7 +98,7 @@ export JOB_ID="<job-id-from-response>"
 
 ```bash
 # Poll the job status (may need to wait for worker to process)
-curl http://localhost:8080/jobs/$JOB_ID | jq
+curl http://localhost:8081/jobs/$JOB_ID | jq
 
 # Initial response (queued):
 # {
@@ -140,7 +140,7 @@ psql -h localhost -p 5432 -U platform_user -d construction_platform \
 
 ### Invalid Project ID
 ```bash
-curl -X POST http://localhost:8080/projects/invalid-uuid/blueprints/upload-url \
+curl -X POST http://localhost:8081/projects/invalid-uuid/blueprints/upload-url \
   -H 'Content-Type: application/json' \
   -d '{"filename": "test.pdf", "content_type": "application/pdf"}'
 
@@ -149,7 +149,7 @@ curl -X POST http://localhost:8080/projects/invalid-uuid/blueprints/upload-url \
 
 ### Missing Required Fields
 ```bash
-curl -X POST http://localhost:8080/projects/$PROJECT_ID/blueprints/upload-url \
+curl -X POST http://localhost:8081/projects/$PROJECT_ID/blueprints/upload-url \
   -H 'Content-Type: application/json' \
   -d '{}'
 
@@ -159,14 +159,14 @@ curl -X POST http://localhost:8080/projects/$PROJECT_ID/blueprints/upload-url \
 ### Analyze Before Upload Complete
 ```bash
 # Request upload URL
-RESPONSE=$(curl -s -X POST http://localhost:8080/projects/$PROJECT_ID/blueprints/upload-url \
+RESPONSE=$(curl -s -X POST http://localhost:8081/projects/$PROJECT_ID/blueprints/upload-url \
   -H 'Content-Type: application/json' \
   -d '{"filename": "test2.pdf", "content_type": "application/pdf"}')
 
 BLUEPRINT_ID2=$(echo $RESPONSE | jq -r '.blueprint_id')
 
 # Try to analyze without completing upload
-curl -X POST http://localhost:8080/blueprints/$BLUEPRINT_ID2/analyze
+curl -X POST http://localhost:8081/blueprints/$BLUEPRINT_ID2/analyze
 
 # Expected: 400 Bad Request - "Blueprint must be uploaded before analysis"
 ```
@@ -174,7 +174,7 @@ curl -X POST http://localhost:8080/blueprints/$BLUEPRINT_ID2/analyze
 ## Health Check
 
 ```bash
-curl http://localhost:8080/health | jq
+curl http://localhost:8081/health | jq
 
 # Expected response:
 # {
