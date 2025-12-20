@@ -280,7 +280,7 @@ type AuthConfig struct {
 **Backend Health Check:**
 ```yaml
 healthcheck:
-  test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:8080/health"]
+  test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:8081/health"]
   interval: 30s
   timeout: 10s
   retries: 3
@@ -432,17 +432,17 @@ ok  	github.com/wonbyte/fantastic-octo-memory/backend/internal/services	0.283s
 4. **Test Authentication:**
    ```bash
    # Create a test user
-   curl -X POST http://localhost:8080/auth/signup \
+   curl -X POST http://localhost:8081/auth/signup \
      -H "Content-Type: application/json" \
      -d '{"email":"test@example.com","password":"testpass123","name":"Test User"}'
    
    # Login
-   curl -X POST http://localhost:8080/auth/login \
+   curl -X POST http://localhost:8081/auth/login \
      -H "Content-Type: application/json" \
      -d '{"email":"test@example.com","password":"testpass123"}'
    
    # Use returned token
-   curl -H "Authorization: Bearer <token>" http://localhost:8080/auth/me
+   curl -H "Authorization: Bearer <token>" http://localhost:8081/auth/me
    ```
 
 ## Monitoring and Observability

@@ -40,7 +40,7 @@ This document provides a complete guide to the testing capabilities implemented 
 
 **Prerequisites**: E2E tests require the full application stack to be running:
 - Frontend: `http://localhost:3000`
-- Backend API: `http://localhost:8080`
+- Backend API: `http://localhost:8081`
 - AI Service: `http://localhost:8000`
 - Database (PostgreSQL)
 - Redis
