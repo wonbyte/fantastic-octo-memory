@@ -43,7 +43,7 @@ Each step must be validated in production to ensure the system works correctly.
 ## Testing Environments
 
 ### Development
-- **URL**: http://localhost:3000
+- **URL**: http://localhost:8080
 - **Purpose**: Local development and initial testing
 - **Data**: Mock/test data
 
@@ -650,7 +650,7 @@ export default defineConfig({
   workers: process.env.CI ? 1 : undefined,
   reporter: 'html',
   use: {
-    baseURL: process.env.BASE_URL || 'http://localhost:3000',
+    baseURL: process.env.BASE_URL || 'http://localhost:8080',
     trace: 'on-first-retry',
     screenshot: 'only-on-failure',
   },

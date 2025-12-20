@@ -143,7 +143,7 @@ The Playwright configuration is in `playwright.config.ts` at the root level:
 export default defineConfig({
   testDir: './e2e',
   use: {
-    baseURL: 'http://localhost:3000',
+    baseURL: 'http://localhost:8080',
     trace: 'on-first-retry',
     screenshot: 'only-on-failure',
   },
