@@ -1,10 +1,11 @@
-.PHONY: help dev start stop build clean logs test prod-build prod-start prod-stop prod-logs
+.PHONY: help dev start stop build clean logs test prod-build prod-start prod-stop prod-logs validate
 
 # Default target
 help:
 	@echo "Construction Estimation & Bidding Automation Platform"
 	@echo ""
 	@echo "Development Commands:"
+	@echo "  make validate      - Validate development setup"
 	@echo "  make dev           - Start all services in development mode"
 	@echo "  make start         - Start all services"
 	@echo "  make stop          - Stop all services"
@@ -19,6 +20,26 @@ help:
 	@echo "  make prod-stop     - Stop production services"
 	@echo "  make prod-logs     - Tail production logs"
 	@echo "  make push-images   - Build and push images to registry"
+	@echo ""
+	@echo "Quality & Setup:"
+	@echo "  make validate      - Validate development environment setup"
+	@echo "  make setup-hooks   - Install pre-commit hooks"
+
+# Validate development setup
+validate:
+	@echo "Validating development setup..."
+	@./scripts/validate-setup.sh
+
+# Setup pre-commit hooks
+setup-hooks:
+	@echo "Installing pre-commit hooks..."
+	@if command -v pre-commit >/dev/null 2>&1; then \
+		pre-commit install; \
+		echo "Pre-commit hooks installed successfully!"; \
+	else \
+		echo "Error: pre-commit not found. Install with: pip install pre-commit"; \
+		exit 1; \
+	fi
 
 # Start all services in development mode
 dev:
